@@ -1,0 +1,11 @@
+---
+description: Database access rules for repositories and services
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# Database Access Rules
+
+- All database access must go through repositories.
+- Do not put SQL or query logic in services.
+- Prefer batch operations instead of loops.

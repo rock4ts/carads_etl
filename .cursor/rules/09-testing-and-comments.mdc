@@ -1,0 +1,12 @@
+---
+description: Testing focus and comment style for Python code
+globs: **/*.py
+alwaysApply: false
+---
+
+# Testing And Comments
+
+- Focus tests on business logic.
+- Cover edge cases and invalid data.
+- Include duplicate detection tests where relevant.
+- Comments should explain why, not what.

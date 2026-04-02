@@ -1,0 +1,13 @@
+---
+description: Error handling and logging rules for Python code
+globs: **/*.py
+alwaysApply: false
+---
+
+# Error Handling And Logging
+
+- Never silently ignore errors.
+- Catch only expected exceptions.
+- Always log meaningful context with failures.
+- Use structured logging.
+- Never use `print()`.

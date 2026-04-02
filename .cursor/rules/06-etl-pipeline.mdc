@@ -1,0 +1,18 @@
+---
+description: ETL pipeline stage and idempotency rules
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# ETL Pipeline Rules
+
+The pipeline must stay split into isolated stages:
+
+- `extract`
+- `validate`
+- `normalize`
+- `deduplicate`
+- `store`
+
+- Do not mix responsibilities across stages.
+- The pipeline must be idempotent.

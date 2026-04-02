@@ -1,0 +1,15 @@
+---
+description: Core project philosophy and consistency rules
+alwaysApply: true
+---
+
+# Project Philosophy
+
+- Build systems that are predictable, testable, and hard to misuse.
+- Write production-ready, clean, maintainable code.
+- Prefer clarity over cleverness.
+- Avoid overengineering.
+- Follow the existing project structure and style.
+- Do not introduce unnecessary abstractions.
+- Reuse existing modules whenever possible.
+- Keep consistency with the rest of the codebase.

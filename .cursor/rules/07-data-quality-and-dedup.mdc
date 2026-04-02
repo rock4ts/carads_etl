@@ -1,0 +1,14 @@
+---
+description: Data quality and deduplication rules for ETL processing
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# Data Quality And Deduplication
+
+- Always assume external input data is dirty.
+- Handle missing and inconsistent fields.
+- Validate all external data.
+- Deduplication must be deterministic.
+- Deduplication must be testable independently.
+- Avoid hidden heuristics.

@@ -1,0 +1,17 @@
+---
+description: Python coding standards for typing, naming, and function design
+globs: **/*.py
+alwaysApply: false
+---
+
+# Python Engineering Standards
+
+- Use full type hints everywhere.
+- Use `| None` instead of `Optional`.
+- Avoid `Any` unless it is truly necessary.
+- Use Pydantic models or dataclasses for structured data.
+- Keep functions small and single-responsibility.
+- Avoid nesting deeper than two levels.
+- Prefer early returns over nested conditions.
+- Use explicit, descriptive names.
+- Avoid generic names like `data`, `item`, and `obj`.

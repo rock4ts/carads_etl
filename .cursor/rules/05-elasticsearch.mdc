@@ -1,0 +1,13 @@
+---
+description: Elasticsearch usage rules for identity and query design
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# Elasticsearch Rules
+
+- IDs must use the `keyword` type, never numeric types.
+- Use `term` queries for IDs.
+- Use `match` only for text search.
+- Never rely on text fields for identity.
+- Avoid wildcard queries in production.

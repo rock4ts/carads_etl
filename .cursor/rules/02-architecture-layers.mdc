@@ -1,0 +1,18 @@
+---
+description: Layered architecture rules for the Python application
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# Layered Architecture
+
+Use the project layers consistently:
+
+- `api` handles requests only.
+- `services` contain business logic.
+- `repositories` contain data access only.
+- `models` define domain models.
+- `schemas` define DTOs.
+- `core` contains configuration and shared utilities.
+
+Never mix responsibilities between layers.

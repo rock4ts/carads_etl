@@ -1,0 +1,11 @@
+---
+description: Performance rules for database and ETL workloads
+globs: app/**/*.py
+alwaysApply: false
+---
+
+# Performance Rules
+
+- Avoid N+1 queries.
+- Prefer bulk operations.
+- Think in batches.
