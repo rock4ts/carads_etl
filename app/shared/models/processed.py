@@ -12,7 +12,7 @@ class CaradTransaction(BaseModel):
     datetime: datetime
     price: float
     views: int | None = None
-    type: str | None = None
+    event_type: str | None = None
 
 
 class Location(BaseModel):
@@ -22,7 +22,7 @@ class Location(BaseModel):
 
 class CaradDocData(BaseModel):
     original_id: Union[int, str, None] = None
-    parapi_unique_id: int
+    parapi_unique_id: int | None = None
     url: str
     site_name: str
     seller_type: str

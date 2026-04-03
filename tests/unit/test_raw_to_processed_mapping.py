@@ -73,7 +73,7 @@ def _load_raw_ad(source: str, fixture_name: str) -> RawAd:
                     "datetime": datetime(2025, 12, 19, 15, 4, 40),
                     "price": 1195000.0,
                     "views": 0,
-                    "type": "top",
+                    "event_type": "top",
                 },
             },
         ),
@@ -126,7 +126,7 @@ def _load_raw_ad(source: str, fixture_name: str) -> RawAd:
                     "datetime": datetime(2025, 8, 18, 6, 42, 55),
                     "price": 1300000.0,
                     "views": 0,
-                    "type": "top",
+                    "event_type": "top",
                 },
             },
         ),
@@ -179,7 +179,7 @@ def _load_raw_ad(source: str, fixture_name: str) -> RawAd:
                     "datetime": datetime(2025, 7, 21, 11, 30, 28),
                     "price": 1530000.0,
                     "views": 0,
-                    "type": "top",
+                    "event_type": "top",
                 },
             },
         ),
@@ -208,7 +208,7 @@ def test_example_ads_are_mapped_to_processed_model(
     assert mapped.trans_history[0].datetime == expected["first_transaction"]["datetime"]
     assert mapped.trans_history[0].price == expected["first_transaction"]["price"]
     assert mapped.trans_history[0].views == expected["first_transaction"]["views"]
-    assert mapped.trans_history[0].type == expected["first_transaction"]["type"]
+    assert mapped.trans_history[0].event_type == expected["first_transaction"]["event_type"]
     assert mapped.initial_price == expected["initial_price"]
     assert mapped.latest_price == expected["latest_price"]
     assert mapped.is_new == expected["is_new"]
@@ -244,3 +244,31 @@ def test_example_ads_are_mapped_to_processed_model(
     assert mapped.offer_end == expected["offer_end"]
     assert len(mapped.images) == expected["images_count"]
     assert str(mapped.images[0]) == expected["first_image"]
+
+
+def test_initial_price_falls_back_to_payload_price_when_history_is_empty() -> None:
+    raw_ad = RawAd(
+        source="auto",
+        ingested_at=INGESTED_AT,
+        payload={
+            "id": "no-history-id",
+            "unique_id": "12345",
+            "url": "https://auto.example/no-history-id",
+            "name": "No History Ad",
+            "parsed": "2026-01-01 00:00:00",
+            "added": "2025-12-31 00:00:00",
+            "checked": "2026-01-01 00:10:00",
+            "actual": "1",
+            "price": "777777.50",
+            "advert_info": [],
+            "advert_image": [],
+            "mark": "Brand",
+            "model": "Model",
+        },
+    )
+
+    mapped = map_raw_to_processed(raw_ad)
+
+    assert mapped.trans_history == []
+    assert mapped.initial_price == 777777.5
+    assert mapped.latest_price == 777777.5

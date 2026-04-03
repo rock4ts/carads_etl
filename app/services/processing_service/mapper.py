@@ -107,7 +107,7 @@ def _build_trans_history(payload: dict[str, Any], fallback_dt: datetime) -> list
                 datetime=history_dt,
                 price=price,
                 views=_to_int(item.get("views")),
-                type=_none_if_blank(item.get("type")),
+                event_type=_none_if_blank(item.get("type")),
             )
         )
 
@@ -170,7 +170,8 @@ def map_raw_to_processed(raw: RawAd) -> CaradDocData:
     offer_start = _parse_datetime(payload.get("added")) or parsed_timestamp
     trans_history = _build_trans_history(payload, fallback_dt=parsed_timestamp)
 
-    initial_price = trans_history[0].price if trans_history else 0.0
+    payload_price = _to_float(payload.get("price"))
+    initial_price = trans_history[0].price if trans_history else (payload_price or 0.0)
     latest_price = trans_history[-1].price if trans_history else initial_price
 
     actual_flag = _to_bool(payload.get("actual"))
