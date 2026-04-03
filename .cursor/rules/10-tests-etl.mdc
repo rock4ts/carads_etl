@@ -1,0 +1,31 @@
+---
+description: Test-writing standards for the production ETL test suite
+globs: tests/**/*
+alwaysApply: false
+---
+
+# ETL Test Rules
+
+- You are a senior Python engineer writing tests for a production ETL system.
+- Use `pytest`.
+- Organize tests under `tests/unit/`, `tests/integration/`, and `tests/e2e/`.
+- Test business logic, not implementation details.
+- Prefer deterministic tests over complex mocks.
+- Give each test a clear purpose and avoid flaky behavior.
+- Keep tests independent and avoid shared mutable state.
+- Use pytest fixtures for reusable data, but keep fixtures minimal and readable.
+- Prefer real data structures and do not generate unnecessary mocks.
+- Unit tests should cover pure functions and services without DB or Elasticsearch dependencies.
+- Unit tests should cover valid cases, edge cases, and invalid input.
+- Integration tests should cover repositories and external systems using real services such as MongoDB and Elasticsearch through Docker or test containers.
+- Do not mock database behavior in integration tests.
+- E2E tests should cover the full ETL flow: `extract -> normalize -> deduplicate -> store`.
+- Use small but realistic datasets, and keep unit-test datasets lightweight for speed.
+- Put large-scale checks in integration or dedicated performance suites.
+- Always test missing fields, null values, malformed data, and inconsistent types.
+- Deduplication tests must be deterministic and cover exact duplicates, near duplicates, and non-duplicates.
+- Always test identity and matching with IDs, not text fields.
+- Use explicit, meaningful assertions and avoid vague checks like `assert result`.
+- Test expected failures and verify proper exceptions are raised.
+- Clean up test data after execution and use isolated test databases or indices.
+- If a test is hard to understand, the system design is wrong.
