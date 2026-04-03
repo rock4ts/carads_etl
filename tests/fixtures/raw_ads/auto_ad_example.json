@@ -1,0 +1,318 @@
+{
+    "unique_id": "139463051",
+    "site_id": "3",
+    "id": "1128919792",
+    "model_id": "60",
+    "generation_id": "238",
+    "modification_id": "2385",
+    "complectation_id": "1326",
+    "city_id": "78",
+    "metro_id": "0",
+    "company": "0",
+    "url": "https://auto.ru/cars/used/sale/kia/cerato/1128919792-74d0695b/",
+    "name": "Сергей Розанов",
+    "user_ident": "pkHLmsGhz_UflqKlY8P3U0iYuZZocFZEhNsqqp51deQ",
+    "year": "2017",
+    "parsed": "2025-07-21 11:30:28",
+    "run": "117000",
+    "run_type": "km",
+    "phone": "",
+    "phone_protection": "1",
+    "comments": "продам свое авто, компания максималка,за машиной следил,масло в коробке поменяла,возможен обмен на Киа спортридж или оптиму с моей доплатой от 2018 года",
+    "pts_owner": null,
+    "engine_vol": "2",
+    "hourse": "150",
+    "vin": "XWE**************",
+    "reg_num": "******|44",
+    "is_new": "0",
+    "owners_num": "2",
+    "first_advert_info_id": "508597816",
+    "last_advert_info_id": "508597816",
+    "is_today": "1",
+    "images_loaded": "1",
+    "actual": "0",
+    "checked": "2026-01-01 00:00:20",
+    "title": "",
+    "generation_checked": "0",
+    "address": "Фестивальная улица",
+    "actual_views": "366",
+    "report": null,
+    "range": null,
+    "power_kwt": "110",
+    "added": "2025-07-21 11:26:03",
+    "axis": null,
+    "loading": null,
+    "recommended_price_from": "1300000",
+    "recommended_price_to": "1442000",
+    "reserved_float_not_used": null,
+    "operating_weight": null,
+    "operating_hours": null,
+    "model": "Cerato",
+    "mark": "KIA",
+    "generation": "III Рестайлинг",
+    "modification": "2.0 AT (150 л.с.)",
+    "complectation": "Premium",
+    "city": "Кострома",
+    "region": "Костромская область",
+    "city_latitude": "57.767961",
+    "city_longitude": "40.926858",
+    "advert_info": [
+        {
+            "price": "1530000.00",
+            "views": "0",
+            "datetime": "2025-07-21 11:30:28",
+            "type": "top"
+        }
+    ],
+    "advert_image": [
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/5177156/efdbf2494d33e79b9a056070b7cad669/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/2103051/d43e3b1e804a83758790caf52ebee201/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/6930117/eb5b06797829fb1ab4306848b7f47b8c/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/7363902/58d9184e8ea5a8339d5b4e1608e45622/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/2165616/e7d288d17b3642d9fa29a2723a3ee74e/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/3923961/cb919761eff22b79174040f987a88377/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/5448758/0d87abb231370cf0954519487a9b16d1/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/6930117/cb7ca33c8f712379c1562550594d8bc1/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/5358791/467880c6d95e2be7ce401e1ae141fc86/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/1597981/6d306690a1cca01e9ade2fd36fc9a7e3/832x624"
+        },
+        {
+            "image": "//avatars.mds.yandex.net/get-autoru-vos/5233478/269c53315cc8e9dbfafc49853c384685/832x624"
+        }
+    ],
+    "advert_option": [
+        {
+            "category": "Салон",
+            "name": "Подогрев передних сидений"
+        },
+        {
+            "category": "Салон",
+            "name": "Третий задний подголовник"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Круиз-контроль"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Климат-контроль 2-зонный"
+        },
+        {
+            "category": "Обзор",
+            "name": "Электрообогрев зоны стеклоочистителей"
+        },
+        {
+            "category": "Обзор",
+            "name": "Датчик света"
+        },
+        {
+            "category": "Обзор",
+            "name": "Ксеноновые/Биксеноновые фары"
+        },
+        {
+            "category": "Салон",
+            "name": "Ткань (Материал салона)"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Подушка безопасности водителя"
+        },
+        {
+            "category": "Мультимедиа",
+            "name": "Розетка 12V"
+        },
+        {
+            "category": "Мультимедиа",
+            "name": "Аудиосистема"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Подушки безопасности боковые"
+        },
+        {
+            "category": "Салон",
+            "name": "Отделка кожей рычага КПП"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Система помощи при старте в гору (HSA)"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Камера задняя"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Система контроля слепых зон"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Усилитель руля"
+        },
+        {
+            "category": "Салон",
+            "name": "Складывающееся заднее сиденье"
+        },
+        {
+            "category": "Защита от угона",
+            "name": "Центральный замок"
+        },
+        {
+            "category": "Элементы экстерьера",
+            "name": "Диски 17"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Электропривод зеркал"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Крепление детского кресла (задний ряд) ISOFIX"
+        },
+        {
+            "category": "Мультимедиа",
+            "name": "USB"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Запуск двигателя с кнопки"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Система доступа без ключа"
+        },
+        {
+            "category": "Мультимедиа",
+            "name": "AUX"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Подрулевые лепестки переключения передач"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Подушки безопасности оконные (шторки)"
+        },
+        {
+            "category": "Салон",
+            "name": "Подогрев задних сидений"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Электростеклоподъемники передние"
+        },
+        {
+            "category": "Обзор",
+            "name": "Электрообогрев боковых зеркал"
+        },
+        {
+            "category": "Мультимедиа",
+            "name": "Bluetooth"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Подушка безопасности пассажира"
+        },
+        {
+            "category": "Обзор",
+            "name": "Противотуманные фары"
+        },
+        {
+            "category": "Салон",
+            "name": "Отделка кожей рулевого колеса"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Парктроник задний"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Антиблокировочная система (ABS)"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Мультифункциональное рулевое колесо"
+        },
+        {
+            "category": "Защита от угона",
+            "name": "Иммобилайзер"
+        },
+        {
+            "category": "Безопасность",
+            "name": "Система стабилизации (ESP)"
+        },
+        {
+            "category": "Салон",
+            "name": "Обогрев рулевого колеса"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Электроскладывание зеркал"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Парктроник передний"
+        },
+        {
+            "category": "Комфорт",
+            "name": "Электростеклоподъемники задние"
+        }
+    ],
+    "params": [
+        {
+            "name": "тип двигателя",
+            "value": "бензин"
+        },
+        {
+            "name": "привод",
+            "value": "передний"
+        },
+        {
+            "name": "руль",
+            "value": "левый"
+        },
+        {
+            "name": "состояние",
+            "value": "не битый"
+        },
+        {
+            "name": "цвет",
+            "value": "чёрный"
+        },
+        {
+            "name": "тип кузова",
+            "value": "седан"
+        },
+        {
+            "name": "коробка передач",
+            "value": "автоматическая"
+        },
+        {
+            "name": "число дверей",
+            "value": "4"
+        },
+        {
+            "name": "наличие",
+            "value": "в наличии"
+        }
+    ]
+}

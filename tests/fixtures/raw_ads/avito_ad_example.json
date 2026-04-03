@@ -1,0 +1,153 @@
+{
+    "unique_id": "140633231",
+    "site_id": "2",
+    "id": "7576886901",
+    "model_id": "795",
+    "generation_id": "10730",
+    "modification_id": "36908",
+    "complectation_id": "7144",
+    "city_id": "2412",
+    "metro_id": "0",
+    "company": "0",
+    "url": "https://www.avito.ru/navoloki/avtomobili/toyota_hiace_2.4_mt_1999_585_000_km_7576886901",
+    "name": "Пользователь",
+    "user_ident": "651c7488fb3e99549fbeac75c3da0aafd18dcb165817dfd87a",
+    "year": "1999",
+    "parsed": "2025-08-17 22:08:38",
+    "run": "585000",
+    "run_type": "km",
+    "phone": "",
+    "phone_protection": "1",
+    "comments": "оригинальная японская тойота,пассажир, салон люкс в хорошем состоянии,ездила только на финском масле мобил ТО всегда вовремя,машина в одних руках больше 10 лет,причина продажи умер хозяин.",
+    "pts_owner": null,
+    "engine_vol": "2.4",
+    "hourse": "94",
+    "vin": "JT12*************",
+    "reg_num": null,
+    "is_new": "0",
+    "owners_num": "4",
+    "first_advert_info_id": "513617981",
+    "last_advert_info_id": "513617981",
+    "is_today": "1",
+    "images_loaded": "1",
+    "actual": "0",
+    "checked": "2026-01-01 00:01:02",
+    "title": "",
+    "generation_checked": "0",
+    "address": null,
+    "actual_views": "2103",
+    "report": null,
+    "range": null,
+    "power_kwt": null,
+    "added": "2025-08-17 21:58:05",
+    "axis": null,
+    "loading": null,
+    "recommended_price_from": "249300",
+    "recommended_price_to": "334400",
+    "reserved_float_not_used": null,
+    "operating_weight": null,
+    "operating_hours": null,
+    "model": "Hiace",
+    "mark": "Toyota",
+    "generation": "H100 (1989—2004)",
+    "modification": "2.4 D MT (94 л.с.)",
+    "complectation": "Базовая",
+    "city": "Наволоки",
+    "region": "Ивановская область",
+    "city_latitude": "57.470588",
+    "city_longitude": "41.957765",
+    "advert_info": [
+        {
+            "price": "1300000.00",
+            "views": "0",
+            "datetime": "2025-08-18 06:42:55",
+            "type": "top"
+        }
+    ],
+    "advert_image": [
+        {
+            "image": "https://00.img.avito.st/image/1/1.hD96Zba4KNY81v7YfmfuKBbEKtDExNrEGMoq1MrMINzM.XwOsNCeoYWJfhO75ajhoGOzFhow9teruhfhBmOeWnVs?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://60.img.avito.st/image/1/1.P43Ue7a4k2SSyEVqph9TmrjakWJq2mF2ttSRZmTSm25i.GzQCVt8gphA-ohMPbfmKT7Ym8eJSWtV1Grx5xH8AD38"
+        },
+        {
+            "image": "https://50.img.avito.st/image/1/1.ujiFQ7a4FtHD8MDf_SGtL-niFNc74uTD5-wU0zXqHtsz.4x1SCxIQsm-yQ-Y4zZ5sCVu4WLhrpWEQhzHS6k0HK4E"
+        },
+        {
+            "image": "https://40.img.avito.st/image/1/1.IKd_Eba4jE45olpAM2FxsROwjkjBsH5cHb6OTM-4hETJ.I5rKvvtKkiMtvMVeyLq9BAof4qVNEkzRytsflu9qXeY"
+        },
+        {
+            "image": "https://30.img.avito.st/image/1/1.6qiFtra4RkHDBZBP3bGHv-kXREc7F7RT5xlEQzUfTksz.QBNqedMHqnVs7BwEyhbDoJeAJj_jPgGu_4wAN8wjdWk?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://10.img.avito.st/image/1/1.kd6vNba4PTfphus5gUuVyMOUPzERlM8lzZo_NR-cNT0Z.yIgTqYAkQjkL60HO4cQ-s4agBxXXOMzRz92_G7qUmj4?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://70.img.avito.st/image/1/1.r43-A7a4A2S4sNVqrBXqm5KiAWJAovF2nKwBZk6qC25I.jLDiBLqRGziHpCFDY0mKZSPJ7YMflXqFJifPFNcIWWM"
+        },
+        {
+            "image": "https://10.img.avito.st/image/1/1.bXLj4ra4wZulUReVtZdfZI9Dw51dQzOJgU3DmVNLyZFV.CYJ4fc1uExKne0t8vaFQYU4rT2OyFnyP64iUE8_414k?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://00.img.avito.st/image/1/1.CXIlHLa4pZtjr3OVOzRVZEm9p52bvVeJR7OnmZW1rZGT.RWgD60xYvFwDKZt0aiIwUYtA4IiuLjJiv6Dfr3na7bE?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://50.img.avito.st/image/1/1.0C-J77a4fMbPXKrIpcywOuVOfsA3To7U60B-xDlGdMw_.roglkw09wTtzNeKvmCgJ7ZXUYCnsMvPFMGtlw3Lf8Jg"
+        },
+        {
+            "image": "https://20.img.avito.st/image/1/1.dXGVqra42ZjTGQ-W8_sxYfkL254rCyuK9wXbmiUD0ZIj.4T0csl1NLnn5u5KJcyWyr4_MmpntLrh7GJXjjt3KAPI?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://30.img.avito.st/image/1/1.nXKUMra4MZvSgeeVoizYZPiTM50qk8OJ9p0zmSSbOZEi.fupjW5pWugGerw9BAR3H4LG_-lSZvZYNvX17au1RuYQ?cqp=2.4e3T8kOmeNvDtl_4YZMTzlQLVn8SpaRJdwQxsmBG8hRDgqTzBbytY1M8t75RoOvSDrIHrfs74BDid1qgqQqVxu1_"
+        },
+        {
+            "image": "https://70.img.avito.st/image/1/1.stqB0La4HjPHY8g96drOz-1xHDU_cewh438cMTF5Fjk3.htYOZ5QFZmo3qyaIx3I9CfTjzyTItzRlhZe1rQHe1pE"
+        },
+        {
+            "image": "https://70.img.avito.st/image/1/1.EuiFbba4vgHD3mgPrTkS_-nMvAc7zEwT58K8AzXEtgsz.g1f_dOyfT8kg0DGumCWU3tFaJHzmRW3MqCDfs3A2QRk"
+        },
+        {
+            "image": "https://90.img.avito.st/image/1/1.6Gd8NLa4RI46h5KAIBvdcRCVRojClbacHptGjMydTITK.gRLnV5oc93SCrBgUPvShNWl3SC3RS5R_RlzE7R9Zhw0"
+        },
+        {
+            "image": "https://90.img.avito.st/image/1/1.7l6FsLa4QrfDA5S51bOUS-kRQLE7EbCl5x9AtTUZSr0z.cbAgnIo3hsnnLx4UfV3Xm6BfE_mpF29vtO4A9Ceqr7g"
+        },
+        {
+            "image": "https://80.img.avito.st/image/1/1.7Tov9ba4QdNpRpfdecrcLENUQ9WRVLPBTVpD0Z9cSdmZ.v7oPWu6Lkw5VdpxfPu5_dvuCeE2s1x-J4iU34DL-pxY"
+        },
+        {
+            "image": "https://50.img.avito.st/image/1/1.v5HQ67a4E3iWWMV2osn5h7xKEX5uSuFqskQRemBCG3Jm.BRYeHlPAlxAUgwupNcpVQptowPSfacFcYp6_FhRYlDc"
+        }
+    ],
+    "params": [
+        {
+            "name": "руль",
+            "value": "левый"
+        },
+        {
+            "name": "состояние",
+            "value": "не битый"
+        },
+        {
+            "name": "привод",
+            "value": "задний"
+        },
+        {
+            "name": "цвет",
+            "value": "серебряный"
+        },
+        {
+            "name": "тип двигателя",
+            "value": "дизель"
+        },
+        {
+            "name": "тип кузова",
+            "value": "минивэн"
+        },
+        {
+            "name": "коробка передач",
+            "value": "механика"
+        }
+    ]
+}
