@@ -111,7 +111,7 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
     )
 
     assert duplicate_id == "best-hit"
-    assert score == pytest.approx(0.736527)
+    assert score == pytest.approx(0.661538)
     assert client.last_kwargs is not None
     assert client.last_kwargs["index"] == "processed-carads"
     assert client.last_kwargs["size"] == 200
@@ -119,21 +119,6 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
         "offer_end",
         "latest_price",
         "mileage",
-        "place",
-        "steering_position",
-        "gear_box",
-        "gear_type",
-        "body_type",
-        "doors_num",
-        "modification",
-        "complectation",
-        "engine_power",
-        "engine_volume_liters",
-        "fuel",
-        "body_color",
-        "count_owner",
-        "condition",
-        "is_new",
     ]
 
     must_not = client.last_kwargs["query"]["bool"]["must_not"]
@@ -152,7 +137,7 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
         "range": {
             "offer_end": {
                 "gte": "2026-01-05T10:00:00",
-                "lte": "2026-01-12T10:00:00",
+                "lte": "2026-01-11T10:00:00",
             }
         }
     } in filters
@@ -160,21 +145,22 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
     assert {"range": {"mileage": {"gte": 95000.0, "lte": 105000.0}}} in filters
     assert {"term": {"generation.keyword": "XV70"}} in filters
     assert {"term": {"build_year": 2020}} in filters
-    assert not any("place.keyword" in item.get("term", {}) for item in filters)
-    assert not any("modification.keyword" in item.get("term", {}) for item in filters)
-    assert not any("complectation.keyword" in item.get("term", {}) for item in filters)
-    assert not any("engine_power" in item.get("term", {}) for item in filters)
-    assert not any("engine_volume_liters" in item.get("term", {}) for item in filters)
-    assert not any("fuel.keyword" in item.get("term", {}) for item in filters)
-    assert not any("gear_type.keyword" in item.get("term", {}) for item in filters)
-    assert not any("gear_box.keyword" in item.get("term", {}) for item in filters)
-    assert not any("steering_position.keyword" in item.get("term", {}) for item in filters)
-    assert not any("body_type.keyword" in item.get("term", {}) for item in filters)
-    assert not any("body_color.keyword" in item.get("term", {}) for item in filters)
-    assert not any("doors_num" in item.get("term", {}) for item in filters)
-    assert not any("count_owner" in item.get("term", {}) for item in filters)
-    assert not any("condition.keyword" in item.get("term", {}) for item in filters)
-    assert not any("is_new" in item.get("term", {}) for item in filters)
+    assert {"term": {"vin.keyword": "VIN123456789"}} in filters
+    assert {"term": {"place.keyword": "Moscow"}} in filters
+    assert {"term": {"steering_position.keyword": "left"}} in filters
+    assert {"term": {"gear_box.keyword": "automatic"}} in filters
+    assert {"term": {"gear_type.keyword": "front"}} in filters
+    assert {"term": {"body_type.keyword": "sedan"}} in filters
+    assert {"term": {"doors_num": "4"}} in filters
+    assert {"term": {"modification.keyword": "2.0 AT"}} in filters
+    assert {"term": {"complectation.keyword": "Premium"}} in filters
+    assert {"term": {"engine_power": 150.0}} in filters
+    assert {"term": {"engine_volume_liters": 2.0}} in filters
+    assert {"term": {"fuel.keyword": "petrol"}} in filters
+    assert {"term": {"body_color.keyword": "black"}} in filters
+    assert {"term": {"count_owner": 1}} in filters
+    assert {"term": {"condition.keyword": "used"}} in filters
+    assert {"term": {"is_new": False}} in filters
 
 
 def test_duplicate_matcher_skips_missing_optional_filters_and_accepts_valid_hit() -> None:
@@ -222,17 +208,34 @@ def test_duplicate_matcher_skips_missing_optional_filters_and_accepts_valid_hit(
     assert {"term": {"_id": "es-doc-456"}} in must_not
     assert {"term": {"is_duplicate": True}} in must_not
     assert {"exists": {"field": "successor_id"}} in must_not
-    assert len(must_not) == 3
+    assert {"exists": {"field": "region"}} in must_not
+    assert {"exists": {"field": "generation"}} in must_not
+    assert {"exists": {"field": "build_year"}} in must_not
+    assert {"exists": {"field": "vin"}} in must_not
+    assert {"exists": {"field": "place"}} in must_not
+    assert {"exists": {"field": "steering_position"}} in must_not
+    assert {"exists": {"field": "gear_box"}} in must_not
+    assert {"exists": {"field": "gear_type"}} in must_not
+    assert {"exists": {"field": "body_type"}} in must_not
+    assert {"exists": {"field": "doors_num"}} in must_not
+    assert {"exists": {"field": "modification"}} in must_not
+    assert {"exists": {"field": "complectation"}} in must_not
+    assert {"exists": {"field": "engine_power"}} in must_not
+    assert {"exists": {"field": "engine_volume_liters"}} in must_not
+    assert {"exists": {"field": "fuel"}} in must_not
+    assert {"exists": {"field": "body_color"}} in must_not
+    assert {"exists": {"field": "count_owner"}} in must_not
+    assert {"exists": {"field": "condition"}} in must_not
 
     filters = client.last_kwargs["query"]["bool"]["filter"]
     assert {"term": {"site_name.keyword": "avito"}} in filters
     assert {"term": {"seller_type": "private"}} in filters
     assert {"term": {"brand.keyword": "Toyota"}} in filters
     assert {"term": {"model.keyword": "Camry"}} in filters
+    assert {"term": {"name.keyword": "Seller"}} in filters
+    assert {"term": {"is_new": False}} in filters
     assert {"range": {"latest_price": {"gte": 900000.0, "lte": 1100000.0}}} in filters
     assert not any("mileage" in item.get("range", {}) for item in filters)
-    assert not any("region.keyword" in item.get("term", {}) for item in filters)
-    assert not any("is_new" in item.get("term", {}) for item in filters)
 
 
 def test_duplicate_matcher_requires_offer_end_within_five_days() -> None:

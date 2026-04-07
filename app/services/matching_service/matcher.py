@@ -12,7 +12,7 @@ from app.shared.models.processed import CaradDocData
 logger = logging.getLogger(__name__)
 
 TIME_WINDOW_DAYS = 5
-PARSER_LAG_DAYS = 2
+PARSER_LAG_DAYS = 1
 PRICE_TOLERANCE = 0.10
 MILEAGE_TOLERANCE = 0.05
 MAX_RESULTS = 200
@@ -21,21 +21,6 @@ SEARCH_SOURCE_FIELDS = [
     "offer_end",
     "latest_price",
     "mileage",
-    "place",
-    "steering_position",
-    "gear_box",
-    "gear_type",
-    "body_type",
-    "doors_num",
-    "modification",
-    "complectation",
-    "engine_power",
-    "engine_volume_liters",
-    "fuel",
-    "body_color",
-    "count_owner",
-    "condition",
-    "is_new",
 ]
 
 
@@ -184,11 +169,25 @@ def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = N
         ("model.keyword", candidate.model),
         ("generation.keyword", candidate.generation),
         ("build_year", candidate.build_year),
+        ("vin.keyword", candidate.vin),
+        ("place.keyword", candidate.place),
+        ("steering_position.keyword", candidate.steering_position),
+        ("gear_box.keyword", candidate.gear_box),
+        ("gear_type.keyword", candidate.gear_type),
+        ("body_type.keyword", candidate.body_type),
+        ("doors_num", candidate.doors_num),
+        ("modification.keyword", candidate.modification),
+        ("complectation.keyword", candidate.complectation),
+        ("engine_power", candidate.engine_power),
+        ("engine_volume_liters", candidate.engine_volume_liters),
+        ("fuel.keyword", candidate.fuel),
+        ("body_color.keyword", candidate.body_color),
+        ("count_owner", candidate.count_owner),
+        ("condition.keyword", candidate.condition),
+        ("is_new", candidate.is_new),
     ]
     for field_name, value in term_clauses:
-        term_clause = _build_exact_term_clause(field_name, value)
-        if term_clause is not None:
-            filters.append(term_clause)
+        _append_exact_or_missing_clause(filters, must_not, field_name, value)
 
     return {"bool": {"must_not": must_not, "filter": filters}}
 
@@ -271,50 +270,6 @@ def _score_duplicate_hit(candidate: CaradDocData, source: Mapping[str, Any]) -> 
     max_score += mileage_weight
     breakdown["mileage"] = mileage_score
 
-    for field_name, candidate_value, source_value, weight in [
-        ("place", candidate.place, source.get("place"), 0.4),
-        ("steering_position", candidate.steering_position, source.get("steering_position"), 0.25),
-        ("gear_box", candidate.gear_box, source.get("gear_box"), 0.25),
-        ("gear_type", candidate.gear_type, source.get("gear_type"), 0.25),
-        ("body_type", candidate.body_type, source.get("body_type"), 0.3),
-        ("doors_num", candidate.doors_num, source.get("doors_num"), 0.2),
-        ("modification", candidate.modification, source.get("modification"), 0.5),
-        ("complectation", candidate.complectation, source.get("complectation"), 0.35),
-        ("fuel", candidate.fuel, source.get("fuel"), 0.25),
-        ("body_color", candidate.body_color, source.get("body_color"), 0.2),
-        ("count_owner", candidate.count_owner, source.get("count_owner"), 0.15),
-        ("condition", candidate.condition, source.get("condition"), 0.25),
-        ("is_new", candidate.is_new, source.get("is_new"), 0.35),
-    ]:
-        field_score, field_weight = _score_exact_match(
-            candidate_value=candidate_value,
-            source_value=source_value,
-            weight=weight,
-        )
-        earned_score += field_score
-        max_score += field_weight
-        breakdown[field_name] = field_score
-
-    engine_power_score, engine_power_weight = _score_numeric_proximity(
-        actual=source.get("engine_power"),
-        target=candidate.engine_power,
-        tolerance=0.10,
-        weight=0.35,
-    )
-    earned_score += engine_power_score
-    max_score += engine_power_weight
-    breakdown["engine_power"] = engine_power_score
-
-    engine_volume_score, engine_volume_weight = _score_numeric_proximity(
-        actual=source.get("engine_volume_liters"),
-        target=candidate.engine_volume_liters,
-        tolerance=0.05,
-        weight=0.35,
-    )
-    earned_score += engine_volume_score
-    max_score += engine_volume_weight
-    breakdown["engine_volume_liters"] = engine_volume_score
-
     if max_score <= 0:
         return 0.0, breakdown
 
@@ -357,17 +312,18 @@ def _score_date_proximity(
     return round(proximity * weight, 6), weight
 
 
-def _score_exact_match(*, candidate_value: Any, source_value: Any, weight: float) -> tuple[float, float]:
-    if weight <= 0:
-        return 0.0, 0.0
+def _append_exact_or_missing_clause(
+    filters: list[dict[str, Any]],
+    must_not: list[dict[str, Any]],
+    field_name: str,
+    value: Any,
+) -> None:
+    term_clause = _build_exact_term_clause(field_name, value)
+    if term_clause is not None:
+        filters.append(term_clause)
+        return
 
-    normalized_candidate = _normalize_match_value(candidate_value)
-    normalized_source = _normalize_match_value(source_value)
-    if normalized_candidate is None or normalized_source is None:
-        return 0.0, 0.0
-    if normalized_candidate != normalized_source:
-        return 0.0, weight
-    return weight, weight
+    must_not.append({"exists": {"field": field_name.split(".")[0]}})
 
 
 def _build_exact_term_clause(field_name: str, value: Any) -> dict[str, Any] | None:
@@ -404,21 +360,6 @@ def _clean_string(value: Any) -> str | None:
     if not cleaned:
         return None
     return cleaned
-
-
-def _normalize_match_value(value: Any) -> str | float | int | bool | None:
-    if isinstance(value, str):
-        return _clean_string(value)
-    if isinstance(value, bool):
-        return value
-    if isinstance(value, (int, float)):
-        numeric_value = _coerce_number(value)
-        if numeric_value is None:
-            return None
-        if numeric_value.is_integer():
-            return int(numeric_value)
-        return numeric_value
-    return None
 
 
 def _coerce_number(value: Any) -> float | None:
