@@ -66,7 +66,7 @@ class CaradDocData(BaseModel):
     place: str | None = None
     region: str | None = None
     location: Location | None = None
-    is_duplicate: bool = False  # about ad
+    predecessor_id: str | None = None
     successor_id: str | None = None
     offer_end: datetime | None = None
     images: List[HttpUrl] = Field(default_factory=list)

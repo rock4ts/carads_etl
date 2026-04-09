@@ -11,7 +11,6 @@ import pytest
 from app.services.processing_service.mapper import map_raw_to_processed
 from app.shared.models.raw import RawAd
 
-
 INGESTED_AT = datetime(2026, 1, 2, 3, 4, 5)
 FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "raw_ads"
 
@@ -185,9 +184,7 @@ def _load_raw_ad(source: str, fixture_name: str) -> RawAd:
         ),
     ],
 )
-def test_example_ads_are_mapped_to_processed_model(
-    source: str, fixture_name: str, expected: dict[str, object]
-) -> None:
+def test_example_ads_are_mapped_to_processed_model(source: str, fixture_name: str, expected: dict[str, object]) -> None:
     raw_ad = _load_raw_ad(source, fixture_name)
 
     before_mapping = datetime.now()
@@ -239,7 +236,7 @@ def test_example_ads_are_mapped_to_processed_model(
     assert mapped.region == expected["region"]
     assert mapped.location is not None
     assert (mapped.location.lat, mapped.location.lon) == expected["location"]
-    assert mapped.is_duplicate is False
+    assert mapped.predecessor_id is None
     assert mapped.successor_id is None
     assert mapped.offer_end == expected["offer_end"]
     assert len(mapped.images) == expected["images_count"]

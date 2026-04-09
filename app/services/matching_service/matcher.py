@@ -125,7 +125,6 @@ async def find_best_duplicate(
 
 def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = None) -> dict[str, Any]:
     must_not: list[dict[str, Any]] = [
-        {"term": {"is_duplicate": True}},
         {"exists": {"field": "successor_id"}},
     ]
 

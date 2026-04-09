@@ -202,7 +202,6 @@ def _build_copy_query() -> dict[str, Any]:
 
 def _reset_validation_fields(source: dict[str, Any]) -> dict[str, Any]:
     copied = dict(source)
-    copied["is_duplicate"] = False
     copied["successor_id"] = None
     return copied
 

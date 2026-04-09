@@ -224,7 +224,7 @@ def map_raw_to_processed(raw: RawAd) -> CaradDocData:
         place=_none_if_blank(payload.get("city")),
         region=_none_if_blank(payload.get("region")),
         location=_build_location(payload),
-        is_duplicate=False,
+        predecessor_id=None,
         successor_id=None,
         offer_end=offer_end,
         images=_build_images(payload),

@@ -123,7 +123,6 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
 
     must_not = client.last_kwargs["query"]["bool"]["must_not"]
     assert {"term": {"_id": "es-doc-123"}} in must_not
-    assert {"term": {"is_duplicate": True}} in must_not
     assert {"exists": {"field": "successor_id"}} in must_not
 
     filters = client.last_kwargs["query"]["bool"]["filter"]
@@ -206,7 +205,6 @@ def test_duplicate_matcher_skips_missing_optional_filters_and_accepts_valid_hit(
 
     must_not = client.last_kwargs["query"]["bool"]["must_not"]
     assert {"term": {"_id": "es-doc-456"}} in must_not
-    assert {"term": {"is_duplicate": True}} in must_not
     assert {"exists": {"field": "successor_id"}} in must_not
     assert {"exists": {"field": "region"}} in must_not
     assert {"exists": {"field": "generation"}} in must_not
