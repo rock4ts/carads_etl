@@ -125,12 +125,9 @@ async def find_best_duplicate(
 
 def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = None) -> dict[str, Any]:
     must_not: list[dict[str, Any]] = [
+        {"term": {"_id": candidate_id}},
         {"exists": {"field": "successor_id"}},
     ]
-
-    resolved_candidate_id = _extract_candidate_id(candidate_id, candidate)
-    if resolved_candidate_id is not None:
-        must_not.insert(0, {"term": {"_id": resolved_candidate_id}})
 
     filters: list[dict[str, Any]] = [
         {
@@ -189,20 +186,6 @@ def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = N
         _append_exact_or_missing_clause(filters, must_not, field_name, value)
 
     return {"bool": {"must_not": must_not, "filter": filters}}
-
-
-def _extract_candidate_id(candidate_id: str | None, candidate: CaradDocData) -> str | None:
-    if candidate_id is not None:
-        cleaned_candidate_id = str(candidate_id).strip()
-        if cleaned_candidate_id:
-            return cleaned_candidate_id
-
-    if candidate.original_id is None:
-        return None
-    fallback_candidate_id = str(candidate.original_id).strip()
-    if not fallback_candidate_id:
-        return None
-    return fallback_candidate_id
 
 
 def _build_relative_range_filter(
