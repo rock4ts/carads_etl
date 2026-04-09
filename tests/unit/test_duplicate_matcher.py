@@ -106,9 +106,7 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
     )
     matcher = DuplicateMatcher(client=client, index_name="processed-carads")
 
-    duplicate_id, score = asyncio.run(
-        matcher.find_best_duplicate(candidate, candidate_id="es-doc-123")
-    )
+    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="es-doc-123"))
 
     assert duplicate_id == "best-hit"
     assert score == pytest.approx(0.661538)
@@ -136,7 +134,7 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
         "range": {
             "offer_end": {
                 "gte": "2026-01-05T10:00:00",
-                "lte": "2026-01-11T10:00:00",
+                "lte": "2026-01-13T10:00:00",
             }
         }
     } in filters
@@ -195,9 +193,7 @@ def test_duplicate_matcher_skips_missing_optional_filters_and_accepts_valid_hit(
     )
     matcher = DuplicateMatcher(client=client, index_name="processed-carads")
 
-    duplicate_id, score = asyncio.run(
-        matcher.find_best_duplicate(candidate, candidate_id="es-doc-456")
-    )
+    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="es-doc-456"))
 
     assert duplicate_id == "valid-hit"
     assert score == pytest.approx(0.88)

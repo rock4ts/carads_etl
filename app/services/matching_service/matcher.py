@@ -12,7 +12,7 @@ from app.shared.models.processed import CaradDocData
 logger = logging.getLogger(__name__)
 
 TIME_WINDOW_DAYS = 5
-PARSER_LAG_DAYS = 1
+PARSER_LAG_DAYS = 3
 PRICE_TOLERANCE = 0.10
 MILEAGE_TOLERANCE = 0.05
 MAX_RESULTS = 200
@@ -47,7 +47,7 @@ class DuplicateMatcher:
     async def find_best_duplicate(
         self,
         candidate: CaradDocData,
-        candidate_id: str | None = None,
+        candidate_id: str,
     ) -> tuple[str | None, float]:
         query = _build_search_query(candidate, candidate_id=candidate_id)
         response = await self._client.search(
@@ -114,7 +114,7 @@ def configure_matcher(
 
 async def find_best_duplicate(
     candidate: CaradDocData,
-    candidate_id: str | None = None,
+    candidate_id: str,
 ) -> tuple[str | None, float]:
     """Find the best duplicate for the provided candidate."""
 
