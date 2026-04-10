@@ -256,7 +256,7 @@ def test_duplicate_matcher_requires_offer_end_within_five_days() -> None:
     )
     matcher = DuplicateMatcher(client=client, index_name="processed-carads")
 
-    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate))
+    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="candidate-1"))
 
     assert duplicate_id == "valid-hit"
     assert score == pytest.approx(0.8)
