@@ -1,0 +1,366 @@
+{
+    "carads1_local": {
+        "aliases": {},
+        "mappings": {
+            "properties": {
+                "body_color": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "body_type": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "brand": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "build_year": {
+                    "type": "long"
+                },
+                "complectation": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "condition": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "count_owner": {
+                    "type": "long"
+                },
+                "doors_num": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "engine_power": {
+                    "type": "long"
+                },
+                "engine_volume_liters": {
+                    "type": "float"
+                },
+                "fuel": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "gear_box": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "gear_type": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "generation": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "images": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "initial_price": {
+                    "type": "long"
+                },
+                "is_duplicate": {
+                    "type": "boolean"
+                },
+                "is_new": {
+                    "type": "boolean"
+                },
+                "last_checked": {
+                    "type": "date"
+                },
+                "latest_price": {
+                    "type": "long"
+                },
+                "location": {
+                    "properties": {
+                        "lat": {
+                            "type": "float"
+                        },
+                        "lon": {
+                            "type": "float"
+                        }
+                    }
+                },
+                "mileage": {
+                    "type": "long"
+                },
+                "mileage_units": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "model": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "modification": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "offer_end": {
+                    "type": "date"
+                },
+                "offer_start": {
+                    "type": "date"
+                },
+                "original_id": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "parapi_complectation_id": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "parapi_generation_id": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "parapi_model_id": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "parapi_modification_id": {
+                    "type": "long"
+                },
+                "parapi_unique_id": {
+                    "type": "long"
+                },
+                "parapi_user_ident": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "parser_complectation_id": {
+                    "type": "long"
+                },
+                "parser_generation_id": {
+                    "type": "long"
+                },
+                "parser_model_id": {
+                    "type": "long"
+                },
+                "parser_modification_id": {
+                    "type": "long"
+                },
+                "phone": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "phone_protection": {
+                    "type": "boolean"
+                },
+                "place": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "region": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "seller_type": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "site_name": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "steering_position": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "trans_history": {
+                    "properties": {
+                        "datetime": {
+                            "type": "date"
+                        },
+                        "price": {
+                            "type": "long"
+                        },
+                        "views": {
+                            "type": "long"
+                        }
+                    }
+                },
+                "unique_id": {
+                    "type": "long"
+                },
+                "url": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                },
+                "views_total": {
+                    "type": "long"
+                },
+                "vin": {
+                    "type": "text",
+                    "fields": {
+                        "keyword": {
+                            "type": "keyword",
+                            "ignore_above": 256
+                        }
+                    }
+                }
+            }
+        },
+        "settings": {
+            "index": {
+                "routing": {
+                    "allocation": {
+                        "include": {
+                            "_tier_preference": "data_content"
+                        }
+                    }
+                },
+                "number_of_shards": "1",
+                "provided_name": "carads1_local",
+                "creation_date": "1775482524814",
+                "number_of_replicas": "1",
+                "uuid": "UQBHNPlvQLOZ3DVTseRLnw",
+                "version": {
+                    "created": "8503000"
+                }
+            }
+        }
+    }
+}
