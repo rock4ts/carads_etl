@@ -62,6 +62,7 @@ The architecture MUST support, as first-class concerns:
 | Elasticsearch  | Search                    |
 | ClickHouse     | Analytics                 |
 
+- **Primary persistence (PostgreSQL):** PostgreSQL is the **main persistence layer** and **system of record** for canonical domain state (entities, relationships, and transactional business data). Default new durable writes and authoritative reads for application features to PostgreSQL-backed repositories unless this document explicitly assigns another store to that concern (e.g. MongoDB for raw ingestion only, Elasticsearch for search views, ClickHouse for analytics).
 - **Per-storage repositories:** Each storage has its own repository implementation for the same conceptual entity when the entity is persisted there. Do not merge storage concerns into one “god” repository.
 - **No cross-storage logic in repositories:** Repositories MUST NOT coordinate reads/writes across PostgreSQL, MongoDB, Elasticsearch, and ClickHouse. Cross-store workflows belong in **services** or the **ETL/processing** layer.
 - **Transformation:** Mapping between raw shapes, domain models, index documents, and analytics rows happens in **services** or **ETL/processing** modules—not inside repositories (beyond trivial row/document field mapping).
@@ -87,6 +88,7 @@ Do **not**:
 - **Mix schemas:** ORM models, API request/response models (e.g. Pydantic), and internal DTOs MUST NOT be conflated. Convert at boundaries explicitly.
 - Place **business logic inside repositories**.
 - Read **environment variables outside** `app/core/config.py` (and its explicitly documented re-exports if any).
+- Treat **MongoDB, Elasticsearch, or ClickHouse as the primary store for canonical domain data** when that data should live in PostgreSQL per §5.
 
 ---
 
