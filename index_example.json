@@ -1,6 +1,5 @@
 {
-    "carads1_local": {
-        "aliases": {},
+    "carads1": {
         "mappings": {
             "properties": {
                 "body_color": {
@@ -340,25 +339,6 @@
                             "ignore_above": 256
                         }
                     }
-                }
-            }
-        },
-        "settings": {
-            "index": {
-                "routing": {
-                    "allocation": {
-                        "include": {
-                            "_tier_preference": "data_content"
-                        }
-                    }
-                },
-                "number_of_shards": "1",
-                "provided_name": "carads1_local",
-                "creation_date": "1775482524814",
-                "number_of_replicas": "1",
-                "uuid": "UQBHNPlvQLOZ3DVTseRLnw",
-                "version": {
-                    "created": "8503000"
                 }
             }
         }
