@@ -7,7 +7,7 @@ from collections.abc import Mapping
 from datetime import datetime, timedelta
 from typing import Any, Protocol
 
-from app.shared.models.processed import CaradDocData
+from app.shared.schemas.processed import CaradDocData
 
 logger = logging.getLogger(__name__)
 

@@ -9,7 +9,7 @@ from typing import Any
 import pytest
 
 from app.services.matching_service.matcher import DuplicateMatcher
-from app.shared.models.processed import CaradDocData
+from app.shared.schemas.processed import CaradDocData
 
 
 class FakeSearchClient:

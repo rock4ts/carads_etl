@@ -7,8 +7,8 @@ from typing import Any
 
 from pydantic import HttpUrl, TypeAdapter
 
-from app.shared.models.processed import CaradDocData, CaradTransaction, Location
-from app.shared.models.raw import RawAd
+from app.shared.schemas.processed import CaradDocData, CaradTransaction, Location
+from app.shared.schemas.raw import RawAd
 
 
 def _none_if_blank(value: Any) -> Any:

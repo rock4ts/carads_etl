@@ -17,7 +17,7 @@ from urllib import error, request
 from pydantic import ValidationError
 
 from app.services.matching_service.matcher import DuplicateMatcher
-from app.shared.models.processed import CaradDocData
+from app.shared.schemas.processed import CaradDocData
 
 DEFAULT_INDEX = "carads1_local"
 DEFAULT_SAMPLE_SIZE = 1000
