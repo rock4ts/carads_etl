@@ -85,6 +85,7 @@ def _build_new_docs_query(site_name: str, lower_bound: datetime, upper_bound: da
         "bool": {
             "filter": [
                 {"term": {"site_name.keyword": site_name}},
+                {"bool": {"must_not": [{"exists": {"field": "predecessor_id"}}]}},
                 {
                     "range": {
                         "offer_start": {
