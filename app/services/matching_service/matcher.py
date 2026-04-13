@@ -138,6 +138,7 @@ def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = N
                 }
             }
         },
+        {"range": {"offer_start": {"lt": candidate.offer_start.isoformat()}}},
     ]
 
     price_filter = _build_relative_range_filter(
