@@ -106,10 +106,11 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
     )
     matcher = DuplicateMatcher(client=client, index_name="processed-carads")
 
-    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="es-doc-123"))
+    duplicate_id, score, duplicate_meta = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="es-doc-123"))
 
     assert duplicate_id == "best-hit"
     assert score == pytest.approx(0.661538)
+    assert duplicate_meta == {"offer_start": None}
     assert client.last_kwargs is not None
     assert client.last_kwargs["index"] == "processed-carads"
     assert client.last_kwargs["size"] == 200
@@ -117,6 +118,7 @@ def test_duplicate_matcher_uses_strong_prefilters_and_selects_best_hit() -> None
         "offer_end",
         "latest_price",
         "mileage",
+        "offer_start",
     ]
 
     must_not = client.last_kwargs["query"]["bool"]["must_not"]
@@ -193,10 +195,11 @@ def test_duplicate_matcher_skips_missing_optional_filters_and_accepts_valid_hit(
     )
     matcher = DuplicateMatcher(client=client, index_name="processed-carads")
 
-    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="es-doc-456"))
+    duplicate_id, score, duplicate_meta = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="es-doc-456"))
 
     assert duplicate_id == "valid-hit"
     assert score == pytest.approx(0.88)
+    assert duplicate_meta == {"offer_start": None}
     assert client.last_kwargs is not None
 
     must_not = client.last_kwargs["query"]["bool"]["must_not"]
@@ -256,7 +259,10 @@ def test_duplicate_matcher_requires_offer_end_within_five_days() -> None:
     )
     matcher = DuplicateMatcher(client=client, index_name="processed-carads")
 
-    duplicate_id, score = asyncio.run(matcher.find_best_duplicate(candidate, candidate_id="candidate-1"))
+    duplicate_id, score, duplicate_meta = asyncio.run(
+        matcher.find_best_duplicate(candidate, candidate_id="candidate-1")
+    )
 
     assert duplicate_id == "valid-hit"
     assert score == pytest.approx(0.8)
+    assert duplicate_meta == {"offer_start": None}

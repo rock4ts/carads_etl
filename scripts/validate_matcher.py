@@ -429,7 +429,7 @@ async def run() -> None:
                 print(f"Skipping candidate {candidate_id}: invalid document ({exc.errors()[0]['msg']})")
                 continue
 
-            duplicate_id, score = await matcher.find_best_duplicate(candidate, candidate_id)
+            duplicate_id, score, _ = await matcher.find_best_duplicate(candidate, candidate_id)
             row = {
                 "candidate_id": candidate_id,
                 "duplicate_id": duplicate_id,

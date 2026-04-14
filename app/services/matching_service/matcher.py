@@ -7,20 +7,16 @@ from collections.abc import Mapping
 from datetime import datetime, timedelta
 from typing import Any, Protocol
 
+from app.services.matching_service.core.config import settings
 from app.shared.schemas.processed import CaradDocData
 
 logger = logging.getLogger(__name__)
-
-TIME_WINDOW_DAYS = 5
-PARSER_LAG_DAYS = 3
-PRICE_TOLERANCE = 0.10
-MILEAGE_TOLERANCE = 0.05
-MAX_RESULTS = 200
 
 SEARCH_SOURCE_FIELDS = [
     "offer_end",
     "latest_price",
     "mileage",
+    "offer_start",
 ]
 
 
@@ -38,8 +34,10 @@ class DuplicateMatcher:
         *,
         client: SearchClient,
         index_name: str,
-        max_results: int = MAX_RESULTS,
+        max_results: int | None = None,
     ) -> None:
+        if max_results is None:
+            max_results = settings.matching_max_results
         self._client = client
         self._index_name = index_name
         self._max_results = max(1, min(max_results, 500))
@@ -48,7 +46,7 @@ class DuplicateMatcher:
         self,
         candidate: CaradDocData,
         candidate_id: str,
-    ) -> tuple[str | None, float]:
+    ) -> tuple[str | None, float, dict[str, Any]]:
         query = _build_search_query(candidate, candidate_id=candidate_id)
         response = await self._client.search(
             index=self._index_name,
@@ -61,6 +59,7 @@ class DuplicateMatcher:
         best_duplicate_id: str | None = None
         best_score = 0.0
         best_breakdown: dict[str, float] | None = None
+        best_duplicate_meta: dict[str, Any] = {}
 
         for hit in hits:
             if not isinstance(hit, Mapping):
@@ -80,9 +79,10 @@ class DuplicateMatcher:
                 best_duplicate_id = duplicate_id
                 best_score = score
                 best_breakdown = breakdown
+                best_duplicate_meta = {"offer_start": _parse_datetime(source.get("offer_start"))}
 
         if best_duplicate_id is None:
-            return None, 0.0
+            return None, 0.0, {}
 
         logger.debug(
             "Selected duplicate candidate %s after Python scoring: score=%.6f breakdown=%s",
@@ -90,7 +90,7 @@ class DuplicateMatcher:
             best_score,
             best_breakdown,
         )
-        return best_duplicate_id, best_score
+        return best_duplicate_id, best_score, best_duplicate_meta
 
 
 _default_matcher: DuplicateMatcher | None = None
@@ -100,7 +100,7 @@ def configure_matcher(
     *,
     client: SearchClient,
     index_name: str,
-    max_results: int = MAX_RESULTS,
+    max_results: int | None = None,
 ) -> None:
     """Configure the module-level matcher used by `find_best_duplicate`."""
 
@@ -115,7 +115,7 @@ def configure_matcher(
 async def find_best_duplicate(
     candidate: CaradDocData,
     candidate_id: str,
-) -> tuple[str | None, float]:
+) -> tuple[str | None, float, dict[str, Any]]:
     """Find the best duplicate for the provided candidate."""
 
     if _default_matcher is None:
@@ -124,6 +124,11 @@ async def find_best_duplicate(
 
 
 def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = None) -> dict[str, Any]:
+    time_window_days = settings.matching_time_window_days
+    parser_lag_days = settings.matching_parser_lag_days
+    price_tolerance = settings.matching_price_tolerance
+    mileage_tolerance = settings.matching_mileage_tolerance
+
     must_not: list[dict[str, Any]] = [
         {"term": {"_id": candidate_id}},
         {"exists": {"field": "successor_id"}},
@@ -133,8 +138,8 @@ def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = N
         {
             "range": {
                 "offer_end": {
-                    "gte": (candidate.offer_start - timedelta(days=TIME_WINDOW_DAYS)).isoformat(),
-                    "lte": (candidate.offer_start + timedelta(days=PARSER_LAG_DAYS)).isoformat(),
+                    "gte": (candidate.offer_start - timedelta(days=time_window_days)).isoformat(),
+                    "lte": (candidate.offer_start + timedelta(days=parser_lag_days)).isoformat(),
                 }
             }
         },
@@ -144,7 +149,7 @@ def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = N
     price_filter = _build_relative_range_filter(
         field_name="latest_price",
         value=candidate.initial_price,
-        tolerance=PRICE_TOLERANCE,
+        tolerance=price_tolerance,
     )
     if price_filter is not None:
         filters.append(price_filter)
@@ -152,7 +157,7 @@ def _build_search_query(candidate: CaradDocData, *, candidate_id: str | None = N
     mileage_filter = _build_relative_range_filter(
         field_name="mileage",
         value=candidate.mileage,
-        tolerance=MILEAGE_TOLERANCE,
+        tolerance=mileage_tolerance,
     )
     if mileage_filter is not None:
         filters.append(mileage_filter)
@@ -215,6 +220,10 @@ def _build_relative_range_filter(
 
 
 def _score_duplicate_hit(candidate: CaradDocData, source: Mapping[str, Any]) -> tuple[float | None, dict[str, float]]:
+    time_window_days = settings.matching_time_window_days
+    price_tolerance = settings.matching_price_tolerance
+    mileage_tolerance = settings.matching_mileage_tolerance
+
     offer_end = _parse_datetime(source.get("offer_end"))
     if offer_end is None:
         return None, {}
@@ -226,7 +235,7 @@ def _score_duplicate_hit(candidate: CaradDocData, source: Mapping[str, Any]) -> 
     offer_end_score, offer_end_weight = _score_date_proximity(
         actual=offer_end,
         target=candidate.offer_start,
-        scale=timedelta(days=TIME_WINDOW_DAYS),
+        scale=timedelta(days=time_window_days),
         weight=3.0,
     )
     earned_score += offer_end_score
@@ -236,7 +245,7 @@ def _score_duplicate_hit(candidate: CaradDocData, source: Mapping[str, Any]) -> 
     price_score, price_weight = _score_numeric_proximity(
         actual=source.get("latest_price"),
         target=candidate.initial_price,
-        tolerance=PRICE_TOLERANCE,
+        tolerance=price_tolerance,
         weight=2.0,
     )
     earned_score += price_score
@@ -246,7 +255,7 @@ def _score_duplicate_hit(candidate: CaradDocData, source: Mapping[str, Any]) -> 
     mileage_score, mileage_weight = _score_numeric_proximity(
         actual=source.get("mileage"),
         target=candidate.mileage,
-        tolerance=MILEAGE_TOLERANCE,
+        tolerance=mileage_tolerance,
         weight=1.5,
     )
     earned_score += mileage_score

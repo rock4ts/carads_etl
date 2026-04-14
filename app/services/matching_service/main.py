@@ -21,14 +21,13 @@ from app.uow.matching_state_uow import (
     SqlAlchemyMatchingStateUnitOfWork,
 )
 
-MAPPING_FIELDS = {
+logger = logging.getLogger(__name__)
+MATCHING_MAPPING_FIELDS = {
     "properties": {
         "predecessor_id": {"type": "keyword"},
         "successor_id": {"type": "keyword"},
     }
 }
-
-logger = logging.getLogger(__name__)
 
 StateUowFactory = Callable[[], MatchingStateUnitOfWork]
 
@@ -217,8 +216,36 @@ async def _process_site(
                     logger.warning("Skipping invalid document %s: %s", doc_id, exc)
                     continue
 
-                duplicate_id, score = await find_best_duplicate(candidate, candidate_id=doc_id)
-                if duplicate_id is None:
+                if candidate.predecessor_id is not None:
+                    logger.debug("Skip %s: reason=already_linked predecessor_id=%s", doc_id, candidate.predecessor_id)
+                    continue
+
+                if candidate.offer_start is None:
+                    logger.warning("Skip %s: reason=missing_offer_start source=candidate", doc_id)
+                    continue
+
+                duplicate_id, score, duplicate_meta = await find_best_duplicate(candidate, candidate_id=doc_id)
+                if duplicate_id is None or score < settings.matching_min_score:
+                    logger.debug("Skip %s: reason=low_score score=%.6f", doc_id, score)
+                    continue
+
+                if duplicate_id == doc_id:
+                    logger.warning("Skip %s: reason=self_match duplicate_id=%s", doc_id, duplicate_id)
+                    continue
+
+                duplicate_offer_start = duplicate_meta.get("offer_start")
+                if duplicate_offer_start is None:
+                    logger.debug("Skip %s: reason=missing_offer_start source=duplicate duplicate_id=%s", doc_id, duplicate_id)
+                    continue
+
+                if duplicate_offer_start >= candidate.offer_start:
+                    logger.warning(
+                        "Skip %s: reason=temporal_violation dup=%s cand=%s duplicate_id=%s",
+                        doc_id,
+                        duplicate_offer_start,
+                        candidate.offer_start,
+                        duplicate_id,
+                    )
                     continue
 
                 matches_found += 1
@@ -297,7 +324,7 @@ async def _run() -> None:
     processed_ads_repo = ElasticsearchProcessedAdsRepository(client=client, index_name=settings.processed_index)
     configure_matcher(client=processed_ads_repo, index_name=settings.processed_index)
 
-    await processed_ads_repo.ensure_mapping(body=MAPPING_FIELDS)
+    await processed_ads_repo.ensure_mapping(body=MATCHING_MAPPING_FIELDS)
     logger.info("Ensured ES mapping fields exist for %s", settings.processed_index)
 
     def _state_uow_factory() -> SqlAlchemyMatchingStateUnitOfWork:
