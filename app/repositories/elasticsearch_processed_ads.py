@@ -68,9 +68,16 @@ class ElasticsearchProcessedAdsRepository:
         return response.get("result") == "updated"
 
     async def link_predecessors(self, *, links: Sequence[tuple[str, str]]) -> int:
-        response = await self._client.bulk_update_predecessor(
-            index=self._index_name,
-            links=links,
+        if not links:
+            return 0
+
+        operations: list[dict[str, Any]] = []
+        for candidate_id, duplicate_id in links:
+            operations.append({"update": {"_index": self._index_name, "_id": candidate_id}})
+            operations.append({"doc": {"predecessor_id": duplicate_id}})
+
+        response = await self._client.bulk(
+            operations=operations,
             refresh=True,
         )
         if not response.get("errors"):
