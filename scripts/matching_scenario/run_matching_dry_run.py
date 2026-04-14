@@ -365,9 +365,11 @@ def reset_matching_fields(
     start_response = client.post_json(
         f"/{target_index}/_update_by_query?wait_for_completion=false&refresh=true",
         {
-            "bool": {
-                "should": [{"exists": {"field": "predecessor_id"}}, {"exists": {"field": "successor_id"}}],
-                "minimum_should_match": 1,
+            "query": {
+                "bool": {
+                    "should": [{"exists": {"field": "predecessor_id"}}, {"exists": {"field": "successor_id"}}],
+                    "minimum_should_match": 1,
+                }
             },
             "script": {"source": ("ctx._source.remove('predecessor_id');ctx._source.remove('successor_id');")},
         },
