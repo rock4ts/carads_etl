@@ -68,7 +68,11 @@ class ElasticsearchProcessedAdsRepository:
         return response.get("result") == "updated"
 
     async def link_predecessors(self, *, links: Sequence[tuple[str, str]]) -> int:
-        response = await self._client.bulk_update_predecessor(index=self._index_name, links=links)
+        response = await self._client.bulk_update_predecessor(
+            index=self._index_name,
+            links=links,
+            refresh=True,
+        )
         if not response.get("errors"):
             return len(links)
 

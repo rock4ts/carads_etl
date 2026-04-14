@@ -72,6 +72,7 @@ class ElasticsearchHttpClient:
         *,
         index: str,
         links: Sequence[tuple[str, str]],
+        refresh: bool = False,
     ) -> dict[str, Any]:
         if not links:
             return {"errors": False, "items": []}
@@ -80,7 +81,8 @@ class ElasticsearchHttpClient:
         for candidate_id, duplicate_id in links:
             lines.append({"update": {"_index": index, "_id": candidate_id}})
             lines.append({"doc": {"predecessor_id": duplicate_id}})
-        return await self._post_ndjson("/_bulk", lines)
+        path = "/_bulk?refresh=true" if refresh else "/_bulk"
+        return await self._post_ndjson(path, lines)
 
     async def put_mapping(self, *, index: str, body: dict[str, Any]) -> dict[str, Any]:
         return await self._request_json("PUT", f"/{index}/_mapping", payload=body)
