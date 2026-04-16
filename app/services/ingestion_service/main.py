@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from app.services.ingestion_service.core.config import settings
@@ -26,6 +26,7 @@ def _configure_logging() -> None:
 
 async def fetch_raw_ads() -> list[dict[str, Any]]:
     """Temporary parser stub used for local pipeline runs."""
+    now = datetime.now(timezone.utc)
     return [
         {
             "id": "stub-avito-1",
@@ -37,9 +38,9 @@ async def fetch_raw_ads() -> list[dict[str, Any]]:
             "price": "1200000",
             "year": "2018",
             "run": "95000",
-            "checked": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "parsed": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "added": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "checked": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "parsed": now.strftime("%Y-%m-%d %H:%M:%S"),
+            "added": now.strftime("%Y-%m-%d %H:%M:%S"),
             "actual": "1",
         }
     ]
@@ -50,7 +51,7 @@ async def main() -> None:
     for payload in raw_payloads:
         raw = RawAd(
             source="avito",
-            ingested_at=datetime.now(),
+            ingested_at=datetime.now(timezone.utc),
             payload=payload,
         )
         await save_raw_ads(

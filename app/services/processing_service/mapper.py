@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import HttpUrl, TypeAdapter
@@ -187,7 +187,7 @@ def map_raw_to_processed(raw: RawAd) -> CaradDocData:
         name=_none_if_blank(payload.get("name")) or "",
         parapi_user_ident=_none_if_blank(payload.get("user_ident")),
         last_checked=last_checked,
-        parsed_at=datetime.now(),
+        parsed_at=datetime.now(timezone.utc),
         offer_start=offer_start,
         trans_history=trans_history,
         initial_price=initial_price,

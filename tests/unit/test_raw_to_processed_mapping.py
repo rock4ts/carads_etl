@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -187,9 +187,9 @@ def _load_raw_ad(source: str, fixture_name: str) -> RawAd:
 def test_example_ads_are_mapped_to_processed_model(source: str, fixture_name: str, expected: dict[str, object]) -> None:
     raw_ad = _load_raw_ad(source, fixture_name)
 
-    before_mapping = datetime.now()
+    before_mapping = datetime.now(timezone.utc)
     mapped = map_raw_to_processed(raw_ad)
-    after_mapping = datetime.now()
+    after_mapping = datetime.now(timezone.utc)
 
     assert mapped.original_id == expected["original_id"]
     assert mapped.parapi_unique_id == expected["parapi_unique_id"]

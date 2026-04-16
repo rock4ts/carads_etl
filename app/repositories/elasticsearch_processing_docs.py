@@ -34,7 +34,7 @@ class ElasticsearchProcessingDocsRepository:
         for doc in docs:
             doc_id = self._build_doc_id(doc)
             doc_data = doc.model_dump(mode="json")
-            doc_data["updated_at"] = datetime.now(tz=timezone.utc).isoformat()
+            doc_data["updated_at"] = datetime.now(timezone.utc).isoformat()
 
             update_doc_data = {key: value for key, value in doc_data.items() if key not in self._protected_fields}
             upsert_doc_data = {key: value for key, value in doc_data.items() if key not in self._protected_fields}

@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from pydantic import ValidationError
@@ -41,7 +41,7 @@ def _configure_logging(log_level: str) -> None:
 
 
 def _build_candidate(source: Mapping[str, Any], doc_id: str) -> CaradDocData:
-    now = datetime.now()
+    now = datetime.now(timezone.utc)
     payload = dict(source)
     if payload.get("original_id") in (None, ""):
         payload["original_id"] = doc_id
