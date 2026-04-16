@@ -1,0 +1,2 @@
+"""Ingestion service core package."""
+
