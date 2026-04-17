@@ -12,7 +12,7 @@ from app.services.processing_service.mapper import map_raw_to_processed
 from app.shared.schemas.raw import RawAd
 
 INGESTED_AT = datetime(2026, 1, 2, 3, 4, 5)
-FIXTURES_DIR = Path(__file__).resolve().parents[1] / "fixtures" / "raw_ads"
+FIXTURES_DIR = Path(__file__).resolve().parents[3] / "fixtures" / "raw_ads"
 
 
 def _load_raw_ad(source: str, fixture_name: str) -> RawAd:
