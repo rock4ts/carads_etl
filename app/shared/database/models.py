@@ -15,13 +15,13 @@ class MatchingStateBase(DeclarativeBase):
 class MarkerTimestamp(MatchingStateBase):
     __tablename__ = "marker_timestamps"
 
-    site_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    site: Mapped[str] = mapped_column(String(64), primary_key=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
 
 
 class UploadTimestamp(MatchingStateBase):
     __tablename__ = "upload_timestamps"
 
-    site_name: Mapped[str] = mapped_column(String(64), primary_key=True)
+    site: Mapped[str] = mapped_column(String(64), primary_key=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
 

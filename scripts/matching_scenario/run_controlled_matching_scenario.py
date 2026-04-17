@@ -526,24 +526,24 @@ def _seed_postgres_window(*, postgres_url: str, site_name: str, earliest: dateti
         conn.execute(
             text(
                 """
-                INSERT INTO upload_timestamps (site_name, "timestamp")
-                VALUES (:site_name, :timestamp)
-                ON CONFLICT (site_name)
+                INSERT INTO upload_timestamps (site, "timestamp")
+                VALUES (:site, :timestamp)
+                ON CONFLICT (site)
                 DO UPDATE SET "timestamp" = EXCLUDED."timestamp"
                 """
             ),
-            {"site_name": site_name, "timestamp": latest_naive},
+            {"site": site_name, "timestamp": latest_naive},
         )
         conn.execute(
             text(
                 """
-                INSERT INTO marker_timestamps (site_name, "timestamp")
-                VALUES (:site_name, :timestamp)
-                ON CONFLICT (site_name)
+                INSERT INTO marker_timestamps (site, "timestamp")
+                VALUES (:site, :timestamp)
+                ON CONFLICT (site)
                 DO UPDATE SET "timestamp" = EXCLUDED."timestamp"
                 """
             ),
-            {"site_name": site_name, "timestamp": earliest_naive},
+            {"site": site_name, "timestamp": earliest_naive},
         )
     LOGGER.info(
         "Seeded Postgres window for site='%s': marker=%s upload=%s",

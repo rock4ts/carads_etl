@@ -35,7 +35,7 @@ class PostgresMatchingStateRepository(MatchingStateRepository):
         self._session = session
 
     def list_upload_sites(self) -> Sequence[str]:
-        return self._session.scalars(select(UploadTimestamp.site_name).order_by(UploadTimestamp.site_name)).all()
+        return self._session.scalars(select(UploadTimestamp.site).order_by(UploadTimestamp.site)).all()
 
     def get_upload_timestamp(self, site_name: str) -> datetime | None:
         row = self._session.get(UploadTimestamp, site_name)
@@ -48,7 +48,7 @@ class PostgresMatchingStateRepository(MatchingStateRepository):
     def upsert_marker_timestamp(self, site_name: str, timestamp: datetime) -> None:
         row = self._session.get(MarkerTimestamp, site_name)
         if row is None:
-            self._session.add(MarkerTimestamp(site_name=site_name, timestamp=timestamp))
+            self._session.add(MarkerTimestamp(site=site_name, timestamp=timestamp))
             return
         row.timestamp = timestamp
         self._session.add(row)
