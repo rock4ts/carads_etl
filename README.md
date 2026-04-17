@@ -34,6 +34,18 @@ etl/
 - Python 3.12
 - `uv`
 
+## Setup
+
+Create this index on the raw ads collection (e.g. in `mongosh`):
+
+```javascript
+db.raw_ads.createIndex({
+  source: 1,
+  "payload.parapi_unique_id": 1,
+  ingested_at: -1
+})
+```
+
 ## Getting Started
 
 ```bash
