@@ -6,15 +6,16 @@ import asyncio
 import json
 import logging
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib import error, parse, request
 
-from app.services.ingestion_service.core.config import IngestionServiceSettings, settings
-from app.services.processing_service.mapper import map_raw_to_processed
-from app.database.session import build_postgres_session_factory
 from app.clients.processed_storage import save_processed_docs
 from app.clients.raw_storage import save_raw_ads
+from app.database.session import build_postgres_session_factory
 from app.schemas.raw import RawAd
+from app.services.ingestion_service.core.config import IngestionServiceSettings, settings
+from app.services.processing_service.mapper import map_raw_to_processed
+from app.services.telegram_notifier import TelegramReporter
 from app.uow.ingestion_state_uow import IngestionStateUnitOfWork, SqlAlchemyIngestionStateUnitOfWork
 
 logger = logging.getLogger(__name__)
@@ -182,6 +183,8 @@ async def _process_site(
     state_uow_factory: StateUowFactory,
     load_till: datetime,
     app_settings: IngestionServiceSettings,
+    reporter: TelegramReporter | None = None,
+    progress_report_interval_minutes: int = 30,
 ) -> None:
     with state_uow_factory() as uow:
         current_from = uow.ingestion_states.get_upload_timestamp(site_name)
@@ -197,6 +200,15 @@ async def _process_site(
         _format_parser_datetime(starting_from),
         _format_parser_datetime(load_till),
     )
+    if reporter is not None:
+        await reporter.send_progress(
+            (
+                f"site={site_name} status=start "
+                f"from={_format_parser_datetime(starting_from)} "
+                f"load_till={_format_parser_datetime(load_till)}"
+            )
+        )
+    last_loop_progress_report_at: datetime | None = None
 
     while current_from < load_till:
         request_from = current_from
@@ -248,6 +260,21 @@ async def _process_site(
             len(ads_batch),
             processed_total,
         )
+        if reporter is not None:
+            now_utc = datetime.now(timezone.utc)
+            should_send_progress = (
+                last_loop_progress_report_at is None
+                or now_utc - last_loop_progress_report_at >= timedelta(minutes=progress_report_interval_minutes)
+            )
+            if should_send_progress:
+                await reporter.send_progress(
+                    (
+                        f"site={site_name} status=in_progress from={request_params['from_datetime']} "
+                        f"current={_format_parser_datetime(current_from)} batch={len(ads_batch)} "
+                        f"processed={processed_total}"
+                    )
+                )
+                last_loop_progress_report_at = now_utc
 
     logger.info(
         "Ingestion [%s]: finished start=%s current=%s processed=%s",
@@ -256,9 +283,18 @@ async def _process_site(
         _format_parser_datetime(current_from),
         processed_total,
     )
+    if reporter is not None:
+        await reporter.send_progress(
+            (
+                f"site={site_name} status=finished "
+                f"start={_format_parser_datetime(starting_from)} "
+                f"current={_format_parser_datetime(current_from)} processed={processed_total}"
+            )
+        )
 
 
 async def _run() -> None:
+    reporter = TelegramReporter.from_settings(service_name="ingestion", settings=settings, logger=logger)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
 
     def _state_uow_factory() -> SqlAlchemyIngestionStateUnitOfWork:
@@ -278,9 +314,12 @@ async def _run() -> None:
                 state_uow_factory=_state_uow_factory,
                 load_till=load_till,
                 app_settings=settings,
+                reporter=reporter,
+                progress_report_interval_minutes=settings.telegram_progress_interval_minutes,
             )
-        except Exception:
+        except Exception as exc:
             logger.exception("Ingestion [%s]: failed, checkpoint unchanged for current batch", site_name)
+            await reporter.send_critical(f"site={site_name} status=failed error={exc!s} checkpoint_action=unchanged")
 
 
 def main() -> None:

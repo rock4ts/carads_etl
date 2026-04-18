@@ -5,17 +5,18 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Callable, Iterable, Mapping, Sequence
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from pydantic import ValidationError
 
-from app.repositories.elasticsearch_processed_ads import ElasticsearchProcessedAdsRepository
-from app.services.matching_service.core.config import settings
-from app.services.matching_service.matcher import configure_matcher, find_best_duplicate
 from app.clients import ElasticsearchHttpClient
 from app.database.session import build_postgres_session_factory
+from app.repositories.elasticsearch_processed_ads import ElasticsearchProcessedAdsRepository
 from app.schemas.processed import CaradDocData
+from app.services.matching_service.core.config import settings
+from app.services.matching_service.matcher import configure_matcher, find_best_duplicate
+from app.services.telegram_notifier import TelegramReporter
 from app.uow.matching_state_uow import (
     MatchingStateUnitOfWork,
     SqlAlchemyMatchingStateUnitOfWork,
@@ -145,6 +146,8 @@ async def _process_site(
     state_uow_factory: StateUowFactory,
     processed_ads_repo: ElasticsearchProcessedAdsRepository,
     batch_size: int,
+    reporter: TelegramReporter | None = None,
+    progress_report_interval_minutes: int = 30,
 ) -> None:
     with state_uow_factory() as uow:
         upload_timestamp = uow.matching_states.get_upload_timestamp(site_name)
@@ -187,6 +190,14 @@ async def _process_site(
             lower_bound.isoformat(),
             upper_bound.isoformat(),
         )
+        if reporter is not None:
+            await reporter.send_progress(
+                (
+                    f"site={site_name} status=start "
+                    f"lower_bound={lower_bound.isoformat()} upper_bound={upper_bound.isoformat()}"
+                )
+            )
+        last_loop_progress_report_at: datetime | None = None
 
         while True:
             hits = await processed_ads_repo.search_window(
@@ -235,7 +246,9 @@ async def _process_site(
 
                 duplicate_offer_start = duplicate_meta.get("offer_start")
                 if duplicate_offer_start is None:
-                    logger.debug("Skip %s: reason=missing_offer_start source=duplicate duplicate_id=%s", doc_id, duplicate_id)
+                    logger.debug(
+                        "Skip %s: reason=missing_offer_start source=duplicate duplicate_id=%s", doc_id, duplicate_id
+                    )
                     continue
 
                 if duplicate_offer_start >= candidate.offer_start:
@@ -287,6 +300,21 @@ async def _process_site(
                 claim_failures,
                 linked_docs,
             )
+            if reporter is not None:
+                now_utc = datetime.now(timezone.utc)
+                should_send_progress = (
+                    last_loop_progress_report_at is None
+                    or now_utc - last_loop_progress_report_at >= timedelta(minutes=progress_report_interval_minutes)
+                )
+                if should_send_progress:
+                    await reporter.send_progress(
+                        (
+                            f"site={site_name} status=in_progress marker={marker_timestamp.isoformat()} "
+                            f"processed={processed_docs} matches={matches_found} claims_ok={claim_successes} "
+                            f"claims_failed={claim_failures} linked={linked_docs}"
+                        )
+                    )
+                    last_loop_progress_report_at = now_utc
 
             search_after = _extract_hit_sort(hits[-1])
             if search_after is None:
@@ -302,6 +330,13 @@ async def _process_site(
             claim_failures,
             linked_docs,
         )
+        if reporter is not None:
+            await reporter.send_progress(
+                (
+                    f"site={site_name} status=finished processed={processed_docs} matches={matches_found} "
+                    f"claims_ok={claim_successes} claims_failed={claim_failures} linked={linked_docs}"
+                )
+            )
 
 
 def _iter_sites(upload_sites: Sequence[str], requested_sites: Iterable[str] | None) -> list[str]:
@@ -313,6 +348,7 @@ def _iter_sites(upload_sites: Sequence[str], requested_sites: Iterable[str] | No
 
 
 async def _run() -> None:
+    reporter = TelegramReporter.from_settings(service_name="matching", settings=settings, logger=logger)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
 
     client = ElasticsearchHttpClient(
@@ -324,7 +360,11 @@ async def _run() -> None:
     processed_ads_repo = ElasticsearchProcessedAdsRepository(client=client, index_name=settings.processed_index)
     configure_matcher(client=processed_ads_repo, index_name=settings.processed_index)
 
-    await processed_ads_repo.ensure_mapping(body=MATCHING_MAPPING_FIELDS)
+    try:
+        await processed_ads_repo.ensure_mapping(body=MATCHING_MAPPING_FIELDS)
+    except Exception as exc:
+        await reporter.send_critical(f"status=failed stage=ensure_mapping error={exc!s}")
+        raise
     logger.info("Ensured ES mapping fields exist for %s", settings.processed_index)
 
     def _state_uow_factory() -> SqlAlchemyMatchingStateUnitOfWork:
@@ -337,12 +377,18 @@ async def _run() -> None:
         return
 
     for site_name in sites:
-        await _process_site(
-            site_name=site_name,
-            state_uow_factory=_state_uow_factory,
-            processed_ads_repo=processed_ads_repo,
-            batch_size=settings.matching_batch_size,
-        )
+        try:
+            await _process_site(
+                site_name=site_name,
+                state_uow_factory=_state_uow_factory,
+                processed_ads_repo=processed_ads_repo,
+                batch_size=settings.matching_batch_size,
+                reporter=reporter,
+                progress_report_interval_minutes=settings.telegram_progress_interval_minutes,
+            )
+        except Exception as exc:
+            await reporter.send_critical(f"site={site_name} status=failed error={exc!s}")
+            raise
 
 
 def main() -> None:

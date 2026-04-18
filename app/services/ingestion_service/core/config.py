@@ -27,6 +27,10 @@ class IngestionServiceSettings(BaseSettings):
     elasticsearch_api_key: str | None = Field(default=None, alias="ELASTICSEARCH_API_KEY")
     elasticsearch_username: str | None = Field(default=None, alias="ELASTICSEARCH_USERNAME")
     elasticsearch_password: str | None = Field(default=None, alias="ELASTICSEARCH_PASSWORD")
+    telegram_bot_token: str | None = Field(default=None, alias="TELEGRAM_BOT_TOKEN")
+    telegram_channel_id: str | None = Field(default=None, alias="TELEGRAM_CHANNEL_ID")
+    telegram_reporting_enabled: bool = Field(default=True, alias="TELEGRAM_REPORTING_ENABLED")
+    telegram_progress_interval_minutes: int = Field(default=30, alias="TELEGRAM_PROGRESS_INTERVAL_MINUTES")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
     @field_validator(
@@ -40,6 +44,8 @@ class IngestionServiceSettings(BaseSettings):
         "elasticsearch_api_key",
         "elasticsearch_username",
         "elasticsearch_password",
+        "telegram_bot_token",
+        "telegram_channel_id",
         "log_level",
         mode="before",
     )
@@ -48,6 +54,23 @@ class IngestionServiceSettings(BaseSettings):
         if isinstance(value, str):
             return value.strip()
         return value
+
+    @field_validator("telegram_progress_interval_minutes", mode="before")
+    @classmethod
+    def _coerce_telegram_progress_interval_minutes(cls, value: object) -> int:
+        default_minutes = 30
+        if isinstance(value, bool):
+            parsed = default_minutes
+        elif isinstance(value, int):
+            parsed = value
+        elif isinstance(value, str):
+            try:
+                parsed = int(value.strip())
+            except ValueError:
+                parsed = default_minutes
+        else:
+            parsed = default_minutes
+        return max(1, parsed)
 
 
 settings = IngestionServiceSettings()

@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import asyncio
 import logging
-from datetime import datetime, timezone, tzinfo
-from typing import Self
+from datetime import datetime, timedelta, timezone, tzinfo
+from typing import Self, cast
 
 import pytest
 
 from app.services.ingestion_service import main as ingestion_main
 from app.services.ingestion_service.core.config import IngestionServiceSettings
+from app.services.telegram_notifier import TelegramReporter
 from tests.unit.services.ingestion.support.builders import build_ad
 from tests.unit.services.ingestion.support.mocks import FakeStateUowFactory, FakeUploadTimestampRepo
 
@@ -195,6 +196,8 @@ def test_run_uses_single_fixed_load_till_for_all_sites(
         state_uow_factory: object,
         load_till: datetime,
         app_settings: IngestionServiceSettings,
+        reporter: object | None = None,
+        progress_report_interval_minutes: int = 5,
     ) -> None:
         process_calls.append((site_name, load_till))
 
@@ -213,3 +216,153 @@ def test_run_uses_single_fixed_load_till_for_all_sites(
     assert [site for site, _ in process_calls] == ["avito", "drom"]
     assert all(load_till == frozen_now.replace(tzinfo=None) for _, load_till in process_calls)
     assert commit_log == []
+
+
+def test_process_site_reports_progress_updates(
+    monkeypatch: pytest.MonkeyPatch,
+    app_settings: IngestionServiceSettings,
+    timestamps: dict[str, datetime],
+) -> None:
+    async def _fetch_batches(**kwargs: object) -> list[dict[str, object]]:
+        current_from = kwargs["current_from"]
+        if current_from == timestamps["T0"]:
+            return [build_ad(checked=timestamps["T1"], unique_id=9801)]
+        return []
+
+    async def _noop_persist(**kwargs: object) -> None:
+        return
+
+    class _Reporter:
+        def __init__(self) -> None:
+            self.progress_messages: list[str] = []
+
+        async def send_progress(self, message: str) -> None:
+            self.progress_messages.append(message)
+
+    state_repo = FakeUploadTimestampRepo({"avito": timestamps["T0"]})
+    state_uow_factory = FakeStateUowFactory(state_repo)
+    reporter = _Reporter()
+
+    monkeypatch.setattr(ingestion_main, "fetch_parser_ads", _fetch_batches)
+    monkeypatch.setattr(ingestion_main, "_persist_batch", _noop_persist)
+
+    asyncio.run(
+        ingestion_main._process_site(
+            site_name="avito",
+            state_uow_factory=state_uow_factory,
+            load_till=timestamps["LOAD_TILL"],
+            app_settings=app_settings,
+            reporter=cast(TelegramReporter, reporter),
+        )
+    )
+
+    assert any("status=start" in msg for msg in reporter.progress_messages)
+    assert any("status=in_progress" in msg for msg in reporter.progress_messages)
+    assert any("status=finished" in msg for msg in reporter.progress_messages)
+
+
+def test_run_reports_critical_message_when_site_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    app_settings: IngestionServiceSettings,
+) -> None:
+    state_repo = FakeUploadTimestampRepo({"avito": datetime(2026, 2, 1, 0, 0, 0)})
+    critical_messages: list[str] = []
+
+    class _FakeSqlAlchemyIngestionStateUnitOfWork:
+        def __init__(self, session_factory: object) -> None:
+            self.ingestion_states = state_repo
+            self._session_factory = session_factory
+
+        def __enter__(self) -> Self:
+            return self
+
+        def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
+            return
+
+        def commit(self) -> None:
+            return
+
+        def rollback(self) -> None:
+            return
+
+    class _Reporter:
+        @classmethod
+        def from_settings(cls, **kwargs: object) -> "_Reporter":
+            return cls()
+
+        async def send_critical(self, message: str) -> None:
+            critical_messages.append(message)
+
+    async def _raise_process_site(**kwargs: object) -> None:
+        raise RuntimeError("site processing exploded")
+
+    monkeypatch.setattr(ingestion_main, "settings", app_settings)
+    monkeypatch.setattr(ingestion_main, "build_postgres_session_factory", lambda _: object())
+    monkeypatch.setattr(ingestion_main, "SqlAlchemyIngestionStateUnitOfWork", _FakeSqlAlchemyIngestionStateUnitOfWork)
+    monkeypatch.setattr(ingestion_main, "TelegramReporter", _Reporter)
+    monkeypatch.setattr(ingestion_main, "_process_site", _raise_process_site)
+
+    asyncio.run(ingestion_main._run())
+
+    assert len(critical_messages) == 1
+    assert "status=failed" in critical_messages[0]
+
+
+def test_process_site_throttles_loop_progress_reports(
+    monkeypatch: pytest.MonkeyPatch,
+    app_settings: IngestionServiceSettings,
+    timestamps: dict[str, datetime],
+) -> None:
+    throttled_settings = app_settings.model_copy(update={"telegram_progress_interval_minutes": 10})
+
+    responses = {
+        timestamps["T0"]: [build_ad(checked=timestamps["T1"], unique_id=9811)],
+        timestamps["T1"]: [build_ad(checked=timestamps["T2"], unique_id=9812)],
+        timestamps["T2"]: [],
+    }
+
+    async def _fetch_batches(**kwargs: object) -> list[dict[str, object]]:
+        current_from = kwargs["current_from"]
+        assert isinstance(current_from, datetime)
+        return responses[current_from]
+
+    async def _noop_persist(**kwargs: object) -> None:
+        return
+
+    progress_messages: list[str] = []
+
+    class _Reporter:
+        async def send_progress(self, message: str) -> None:
+            progress_messages.append(message)
+
+    frozen_now = datetime(2026, 3, 1, 10, 0, 0, tzinfo=timezone.utc)
+    now_values = iter([frozen_now, frozen_now + timedelta(minutes=1)])
+
+    class _FrozenDatetime(datetime):
+        @classmethod
+        def now(cls, tz: tzinfo | None = None) -> datetime:
+            current = next(now_values)
+            if tz is None:
+                return current.replace(tzinfo=None)
+            return current.astimezone(tz)
+
+    state_repo = FakeUploadTimestampRepo({"avito": timestamps["T0"]})
+    state_uow_factory = FakeStateUowFactory(state_repo)
+
+    monkeypatch.setattr(ingestion_main, "datetime", _FrozenDatetime)
+    monkeypatch.setattr(ingestion_main, "fetch_parser_ads", _fetch_batches)
+    monkeypatch.setattr(ingestion_main, "_persist_batch", _noop_persist)
+
+    asyncio.run(
+        ingestion_main._process_site(
+            site_name="avito",
+            state_uow_factory=state_uow_factory,
+            load_till=timestamps["LOAD_TILL"],
+            app_settings=throttled_settings,
+            reporter=cast(TelegramReporter, _Reporter()),
+            progress_report_interval_minutes=throttled_settings.telegram_progress_interval_minutes,
+        )
+    )
+
+    progress_messages = [msg for msg in progress_messages if "status=in_progress" in msg]
+    assert len(progress_messages) == 1

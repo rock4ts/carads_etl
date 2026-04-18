@@ -25,3 +25,11 @@ def test_database_url_uses_legacy_fallback(monkeypatch) -> None:
 
     assert cfg.postgres_database_url == "postgresql+psycopg://example:test@localhost:5432/mydb"
 
+
+def test_telegram_progress_interval_minutes_is_clamped(monkeypatch) -> None:
+    monkeypatch.setenv("TELEGRAM_PROGRESS_INTERVAL_MINUTES", "0")
+
+    cfg = MatchingServiceSettings()
+
+    assert cfg.telegram_progress_interval_minutes == 1
+
