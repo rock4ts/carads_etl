@@ -8,7 +8,7 @@ from typing import Protocol, Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.shared.database.models import MarkerTimestamp, UploadTimestamp
+from app.database.models import MarkerTimestamp, UploadTimestamp
 
 
 class MatchingStateRepository(Protocol):

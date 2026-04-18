@@ -11,10 +11,10 @@ from urllib import error, parse, request
 
 from app.services.ingestion_service.core.config import IngestionServiceSettings, settings
 from app.services.processing_service.mapper import map_raw_to_processed
-from app.shared.database.session import build_postgres_session_factory
-from app.shared.clients.processed_storage import save_processed_docs
-from app.shared.clients.raw_storage import save_raw_ads
-from app.shared.schemas.raw import RawAd
+from app.database.session import build_postgres_session_factory
+from app.clients.processed_storage import save_processed_docs
+from app.clients.raw_storage import save_raw_ads
+from app.schemas.raw import RawAd
 from app.uow.ingestion_state_uow import IngestionStateUnitOfWork, SqlAlchemyIngestionStateUnitOfWork
 
 logger = logging.getLogger(__name__)

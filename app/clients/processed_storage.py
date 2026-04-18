@@ -6,8 +6,8 @@ import logging
 from collections.abc import Sequence
 
 from app.repositories.elasticsearch_processing_docs import ElasticsearchProcessingDocsRepository
-from app.shared.clients.elasticsearch_http import ElasticsearchHttpClient
-from app.shared.schemas.processed import CaradDocData
+from app.clients.elasticsearch_http import ElasticsearchHttpClient
+from app.schemas.processed import CaradDocData
 
 logger = logging.getLogger(__name__)
 PROCESSED_INDEX_NAME = "carads1_local"

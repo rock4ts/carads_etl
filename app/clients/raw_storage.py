@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from app.shared.clients.mongo_client import MongoClient
-from app.shared.schemas.raw import RawAd
+from app.clients.mongo_client import MongoClient
+from app.schemas.raw import RawAd
 
 
 def _build_mongo_client(*, mongo_uri: str | None, mongo_db: str | None) -> MongoClient:

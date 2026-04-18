@@ -4,7 +4,7 @@ from collections.abc import Iterable, Sequence
 from datetime import datetime
 
 from app.repositories.ingestion_state import IngestionStateRepository
-from app.shared.schemas.raw import RawAd
+from app.schemas.raw import RawAd
 from app.uow.ingestion_state_uow import IngestionStateUnitOfWork
 
 

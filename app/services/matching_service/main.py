@@ -13,9 +13,9 @@ from pydantic import ValidationError
 from app.repositories.elasticsearch_processed_ads import ElasticsearchProcessedAdsRepository
 from app.services.matching_service.core.config import settings
 from app.services.matching_service.matcher import configure_matcher, find_best_duplicate
-from app.shared.clients import ElasticsearchHttpClient
-from app.shared.database.session import build_postgres_session_factory
-from app.shared.schemas.processed import CaradDocData
+from app.clients import ElasticsearchHttpClient
+from app.database.session import build_postgres_session_factory
+from app.schemas.processed import CaradDocData
 from app.uow.matching_state_uow import (
     MatchingStateUnitOfWork,
     SqlAlchemyMatchingStateUnitOfWork,

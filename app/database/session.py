@@ -1,11 +1,11 @@
-"""Session factory helpers for shared Postgres persistence."""
+"""Session factory helpers for Postgres persistence."""
 
 from __future__ import annotations
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.shared.database.models import MatchingStateBase
+from app.database.models import MatchingStateBase
 
 
 def build_postgres_session_factory(database_url: str) -> sessionmaker[Session]:

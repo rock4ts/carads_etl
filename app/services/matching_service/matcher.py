@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 from typing import Any, Protocol
 
 from app.services.matching_service.core.config import settings
-from app.shared.schemas.processed import CaradDocData
+from app.schemas.processed import CaradDocData
 
 logger = logging.getLogger(__name__)
 

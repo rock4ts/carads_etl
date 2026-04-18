@@ -150,4 +150,3 @@ class ElasticsearchHttpClient:
             return json.loads(response_body)
         except json.JSONDecodeError as exc:
             raise RuntimeError(f"Invalid JSON response from Elasticsearch at {url}") from exc
-

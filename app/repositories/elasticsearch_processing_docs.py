@@ -7,8 +7,8 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime, timezone
 from typing import Any
 
-from app.shared.clients.elasticsearch_http import ElasticsearchHttpClient
-from app.shared.schemas.processed import CaradDocData
+from app.clients.elasticsearch_http import ElasticsearchHttpClient
+from app.schemas.processed import CaradDocData
 
 logger = logging.getLogger(__name__)
 

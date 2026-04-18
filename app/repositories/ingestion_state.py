@@ -8,7 +8,7 @@ from typing import Protocol, Sequence
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.shared.database.models import UploadTimestamp
+from app.database.models import UploadTimestamp
 
 
 class IngestionStateRepository(Protocol):

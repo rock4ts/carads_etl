@@ -6,7 +6,7 @@ import json
 from collections.abc import Mapping, Sequence
 from typing import Any
 
-from app.shared.clients import ElasticsearchHttpClient
+from app.clients import ElasticsearchHttpClient
 
 
 class ElasticsearchProcessedAdsRepository:

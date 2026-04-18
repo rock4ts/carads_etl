@@ -24,4 +24,3 @@ class UploadTimestamp(MatchingStateBase):
 
     site: Mapped[str] = mapped_column(String(64), primary_key=True)
     timestamp: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
-

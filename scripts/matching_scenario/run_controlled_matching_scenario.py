@@ -27,7 +27,7 @@ from urllib import error, request
 
 from sqlalchemy import create_engine, text
 
-from app.shared.database.models import MatchingStateBase
+from app.database.models import MatchingStateBase
 
 DEFAULT_ELASTICSEARCH_URL = "http://localhost:19200"
 DEFAULT_POSTGRES_DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/car_intel"
