@@ -27,7 +27,7 @@ from urllib import error, request
 
 from sqlalchemy import create_engine, text
 
-from app.database.models import MatchingStateBase
+from app.database.models import EtlStateBase
 
 DEFAULT_ELASTICSEARCH_URL = "http://localhost:19200"
 DEFAULT_POSTGRES_DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/car_intel"
@@ -519,7 +519,7 @@ def _bulk_seed_documents(client: ElasticsearchHttpClient, *, index_name: str, do
 def _seed_postgres_window(*, postgres_url: str, site_name: str, earliest: datetime, latest: datetime) -> None:
     engine = create_engine(postgres_url, future=True)
     # Ensure worker state tables exist for clean local/dev databases.
-    MatchingStateBase.metadata.create_all(engine)
+    EtlStateBase.metadata.create_all(engine)
     earliest_naive = earliest.astimezone(UTC).replace(tzinfo=None)
     latest_naive = latest.astimezone(UTC).replace(tzinfo=None)
     with engine.begin() as conn:
