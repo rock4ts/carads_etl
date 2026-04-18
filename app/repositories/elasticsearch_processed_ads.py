@@ -7,20 +7,36 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from app.clients import ElasticsearchHttpClient
+from app.core.http_backoff import BackoffNotifier, with_http_backoff
 
 
 class ElasticsearchProcessedAdsRepository:
     """Encapsulates matching-related Elasticsearch access."""
 
-    def __init__(self, *, client: ElasticsearchHttpClient, index_name: str) -> None:
+    def __init__(
+        self,
+        *,
+        client: ElasticsearchHttpClient,
+        index_name: str,
+        on_backoff_notify: BackoffNotifier | None = None,
+    ) -> None:
         self._client = client
         self._index_name = index_name
+        self._on_backoff_notify = on_backoff_notify
 
     async def search(self, **kwargs: Any) -> Mapping[str, Any]:
-        return await self._client.search(**kwargs)
+        @with_http_backoff(operation="processed_ads.search", notify=self._on_backoff_notify)
+        async def _search() -> Mapping[str, Any]:
+            return await self._client.search(**kwargs)
+
+        return await _search()
 
     async def ensure_mapping(self, *, body: dict[str, Any]) -> None:
-        await self._client.put_mapping(index=self._index_name, body=body)
+        @with_http_backoff(operation="processed_ads.put_mapping", notify=self._on_backoff_notify)
+        async def _put_mapping() -> None:
+            await self._client.put_mapping(index=self._index_name, body=body)
+
+        await _put_mapping()
 
     async def search_window(
         self,
@@ -29,42 +45,50 @@ class ElasticsearchProcessedAdsRepository:
         batch_size: int,
         search_after: list[Any] | None,
     ) -> list[Mapping[str, Any]]:
-        response = await self._client.search(
-            index=self._index_name,
-            query=query,
-            size=batch_size,
-            sort=[
-                {"offer_start": {"order": "asc"}},
-                {"_id": {"order": "asc"}},
-            ],
-            source=True,
-            search_after=search_after,
-        )
+        @with_http_backoff(operation="processed_ads.search_window", notify=self._on_backoff_notify)
+        async def _search_window() -> dict[str, Any]:
+            return await self._client.search(
+                index=self._index_name,
+                query=query,
+                size=batch_size,
+                sort=[
+                    {"offer_start": {"order": "asc"}},
+                    {"_id": {"order": "asc"}},
+                ],
+                source=True,
+                search_after=search_after,
+            )
+
+        response = await _search_window()
         hits = response.get("hits", {}).get("hits", [])
         if not isinstance(hits, list):
             return []
         return [hit for hit in hits if isinstance(hit, Mapping)]
 
     async def claim_duplicate(self, *, duplicate_id: str, candidate_id: str) -> bool:
-        response = await self._client.update(
-            index=self._index_name,
-            doc_id=duplicate_id,
-            body={
-                "script": {
-                    "source": """
-                        if (ctx._source.successor_id == null) {
-                            ctx._source.successor_id = params.new_id;
-                        } else {
-                            ctx.op = 'none';
-                        }
-                    """,
-                    "params": {
-                        "new_id": candidate_id,
-                    },
-                }
-            },
-            refresh=True,
-        )
+        @with_http_backoff(operation="processed_ads.claim_duplicate", notify=self._on_backoff_notify)
+        async def _claim_duplicate() -> dict[str, Any]:
+            return await self._client.update(
+                index=self._index_name,
+                doc_id=duplicate_id,
+                body={
+                    "script": {
+                        "source": """
+                            if (ctx._source.successor_id == null) {
+                                ctx._source.successor_id = params.new_id;
+                            } else {
+                                ctx.op = 'none';
+                            }
+                        """,
+                        "params": {
+                            "new_id": candidate_id,
+                        },
+                    }
+                },
+                refresh=True,
+            )
+
+        response = await _claim_duplicate()
         return response.get("result") == "updated"
 
     async def link_predecessors(self, *, links: Sequence[tuple[str, str]]) -> int:
@@ -76,10 +100,14 @@ class ElasticsearchProcessedAdsRepository:
             operations.append({"update": {"_index": self._index_name, "_id": candidate_id}})
             operations.append({"doc": {"predecessor_id": duplicate_id}})
 
-        response = await self._client.bulk(
-            operations=operations,
-            refresh=True,
-        )
+        @with_http_backoff(operation="processed_ads.link_predecessors", notify=self._on_backoff_notify)
+        async def _link_predecessors() -> dict[str, Any]:
+            return await self._client.bulk(
+                operations=operations,
+                refresh=True,
+            )
+
+        response = await _link_predecessors()
         if not response.get("errors"):
             return len(links)
 

@@ -11,6 +11,7 @@ from urllib import error, parse, request
 
 from app.clients.processed_storage import save_processed_docs
 from app.clients.raw_storage import save_raw_ads
+from app.core.http_backoff import BackoffNotifier, with_http_backoff
 from app.database.session import build_postgres_session_factory
 from app.schemas.raw import RawAd
 from app.services.ingestion_service.core.config import IngestionServiceSettings, settings
@@ -89,6 +90,7 @@ def _fetch_parser_ads_sync(
     parser_api_key: str,
     site_name: str,
     current_from: datetime,
+    on_backoff_notify: BackoffNotifier | None = None,
 ) -> list[dict[str, object]]:
     url = _build_request_url(
         parser_api_url=parser_api_url,
@@ -97,9 +99,14 @@ def _fetch_parser_ads_sync(
         current_from=current_from,
     )
     req = request.Request(url=url, method="GET")
-    try:
+
+    @with_http_backoff(operation=f"parser_fetch:{site_name}", notify=on_backoff_notify)
+    def _fetch_response_body() -> str:
         with request.urlopen(req, timeout=PARSER_REQUEST_TIMEOUT_SECONDS) as response:
-            body = response.read().decode("utf-8")
+            return response.read().decode("utf-8")
+
+    try:
+        body = _fetch_response_body()
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
         raise RuntimeError(f"Parser HTTP {exc.code} for {site_name} at {url}: {detail}") from exc
@@ -120,6 +127,7 @@ async def fetch_parser_ads(
     parser_api_key: str,
     site_name: str,
     current_from: datetime,
+    on_backoff_notify: BackoffNotifier | None = None,
 ) -> list[dict[str, object]]:
     return await asyncio.to_thread(
         _fetch_parser_ads_sync,
@@ -127,7 +135,21 @@ async def fetch_parser_ads(
         parser_api_key=parser_api_key,
         site_name=site_name,
         current_from=current_from,
+        on_backoff_notify=on_backoff_notify,
     )
+
+
+def _build_backoff_notifier(reporter: TelegramReporter | None) -> BackoffNotifier | None:
+    if reporter is None:
+        return None
+
+    def _notify(message: str) -> None:
+        try:
+            asyncio.run(reporter.send_progress(message))
+        except Exception:
+            logger.exception("Failed to report parser request backoff via Telegram")
+
+    return _notify
 
 
 def _max_checked_timestamp(ads_batch: list[dict[str, object]]) -> datetime:
@@ -186,6 +208,7 @@ async def _process_site(
     reporter: TelegramReporter | None = None,
     progress_report_interval_minutes: int = 30,
 ) -> None:
+    backoff_notifier = _build_backoff_notifier(reporter)
     with state_uow_factory() as uow:
         current_from = uow.ingestion_states.get_upload_timestamp(site_name)
     if current_from is None:
@@ -216,12 +239,15 @@ async def _process_site(
             "site": site_name,
             "from_datetime": _format_parser_datetime(request_from),
         }
-        ads_batch = await fetch_parser_ads(
-            parser_api_url=app_settings.parser_api_url,
-            parser_api_key=app_settings.parser_api_key,
-            site_name=site_name,
-            current_from=request_from,
-        )
+        fetch_kwargs: dict[str, object] = {
+            "parser_api_url": app_settings.parser_api_url,
+            "parser_api_key": app_settings.parser_api_key,
+            "site_name": site_name,
+            "current_from": request_from,
+        }
+        if backoff_notifier is not None:
+            fetch_kwargs["on_backoff_notify"] = backoff_notifier
+        ads_batch = await fetch_parser_ads(**fetch_kwargs)
         if not ads_batch:
             logger.info(
                 "Ingestion [%s]: empty batch at cursor=%s processed=%s",

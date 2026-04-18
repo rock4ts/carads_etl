@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from app.clients.elasticsearch_http import ElasticsearchHttpClient
+from app.core.http_backoff import BackoffNotifier, with_http_backoff
 from app.schemas.processed import CaradDocData
 
 logger = logging.getLogger(__name__)
@@ -21,9 +22,16 @@ class ElasticsearchProcessingDocsRepository:
         "predecessor_id",
     }
 
-    def __init__(self, *, client: ElasticsearchHttpClient, index_name: str) -> None:
+    def __init__(
+        self,
+        *,
+        client: ElasticsearchHttpClient,
+        index_name: str,
+        on_backoff_notify: BackoffNotifier | None = None,
+    ) -> None:
         self._client = client
         self._index_name = index_name
+        self._on_backoff_notify = on_backoff_notify
 
     @staticmethod
     def _build_doc_id(doc: CaradDocData) -> str:
@@ -47,7 +55,11 @@ class ElasticsearchProcessingDocsRepository:
                 }
             )
 
-        response = await self._client.bulk(operations=operations)
+        @with_http_backoff(operation="processing_docs.bulk_index", notify=self._on_backoff_notify)
+        async def _bulk_index() -> dict[str, Any]:
+            return await self._client.bulk(operations=operations)
+
+        response = await _bulk_index()
         if not response.get("errors"):
             return []
 

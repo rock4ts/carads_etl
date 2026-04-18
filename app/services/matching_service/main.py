@@ -11,6 +11,7 @@ from typing import Any
 from pydantic import ValidationError
 
 from app.clients import ElasticsearchHttpClient
+from app.core.http_backoff import BackoffNotifier
 from app.database.session import build_postgres_session_factory
 from app.repositories.elasticsearch_processed_ads import ElasticsearchProcessedAdsRepository
 from app.schemas.processed import CaradDocData
@@ -347,9 +348,20 @@ def _iter_sites(upload_sites: Sequence[str], requested_sites: Iterable[str] | No
     return [site for site in upload_sites_list if site in requested]
 
 
+def _build_backoff_notifier(reporter: TelegramReporter) -> BackoffNotifier:
+    def _notify(message: str) -> None:
+        try:
+            asyncio.run(reporter.send_progress(message))
+        except Exception:
+            logger.exception("Failed to report Elasticsearch backoff via Telegram")
+
+    return _notify
+
+
 async def _run() -> None:
     reporter = TelegramReporter.from_settings(service_name="matching", settings=settings, logger=logger)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
+    backoff_notifier = _build_backoff_notifier(reporter)
 
     client = ElasticsearchHttpClient(
         settings.elasticsearch_url,
@@ -357,7 +369,11 @@ async def _run() -> None:
         username=settings.elasticsearch_username,
         password=settings.elasticsearch_password,
     )
-    processed_ads_repo = ElasticsearchProcessedAdsRepository(client=client, index_name=settings.processed_index)
+    processed_ads_repo = ElasticsearchProcessedAdsRepository(
+        client=client,
+        index_name=settings.processed_index,
+        on_backoff_notify=backoff_notifier,
+    )
     configure_matcher(client=processed_ads_repo, index_name=settings.processed_index)
 
     try:

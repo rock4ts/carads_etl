@@ -5,6 +5,7 @@ description = "Monorepo for a Python ETL pipeline"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "backoff>=2.2.1",
     "greenlet<3.4",
     "motor>=3.7.1",
     "psycopg[binary]>=3.3.3",
