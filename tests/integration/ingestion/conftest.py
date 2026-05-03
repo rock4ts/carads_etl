@@ -11,16 +11,18 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorCollection
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from app.clients.elasticsearch_http import ElasticsearchHttpClient
 from app.clients import processed_storage
+from app.clients.elasticsearch_http import ElasticsearchHttpClient
 from app.database.session import build_postgres_session_factory
+from app.repositories import elasticsearch_processing_docs as processing_docs_repo
 from app.services.ingestion_service import main as ingestion_main
 from app.services.ingestion_service.core.config import IngestionServiceSettings
 from app.services.processing_service import mapper as processing_mapper
-from app.repositories import elasticsearch_processing_docs as processing_docs_repo
 from app.uow.ingestion_state_uow import SqlAlchemyIngestionStateUnitOfWork
 
-POSTGRES_DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/car_intel"
+POSTGRES_DATABASE_URL = (
+    "postgresql+psycopg://postgres:postgres@localhost:5432/car_intel"
+)
 ELASTICSEARCH_URL = "http://localhost:19200"
 MONGO_URI = "mongodb://localhost:27017"
 MONGO_DB = "etl_db"
@@ -33,7 +35,9 @@ T2 = datetime(2026, 1, 1, 0, 20, 0)
 LOAD_TILL = datetime(2026, 1, 1, 1, 0, 0)
 
 
-def _es_request(method: str, path: str, payload: dict[str, object] | None = None) -> dict[str, object]:
+def _es_request(
+    method: str, path: str, payload: dict[str, object] | None = None
+) -> dict[str, object]:
     url = f"{ELASTICSEARCH_URL}{path}"
     data = json.dumps(payload).encode("utf-8") if payload is not None else None
     req = request.Request(
@@ -53,9 +57,13 @@ def _es_request(method: str, path: str, payload: dict[str, object] | None = None
 class ParserStub:
     def __init__(self) -> None:
         self.calls: list[tuple[str, datetime]] = []
-        self._handler: Callable[[str, datetime], list[dict[str, object]]] = lambda _site, _from_dt: []
+        self._handler: Callable[[str, datetime], list[dict[str, object]]] = (
+            lambda _site, _from_dt: []
+        )
 
-    def set_handler(self, handler: Callable[[str, datetime], list[dict[str, object]]]) -> None:
+    def set_handler(
+        self, handler: Callable[[str, datetime], list[dict[str, object]]]
+    ) -> None:
         self._handler = handler
 
     async def fetch(
@@ -100,7 +108,9 @@ def session_factory() -> sessionmaker[Session]:
 
 
 @pytest.fixture
-def postgres_session(session_factory: sessionmaker[Session]) -> Generator[Session, None, None]:
+def postgres_session(
+    session_factory: sessionmaker[Session],
+) -> Generator[Session, None, None]:
     with session_factory() as session:
         yield session
 
