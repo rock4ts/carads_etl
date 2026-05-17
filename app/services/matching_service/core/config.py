@@ -7,7 +7,7 @@ from typing import Any
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-DEFAULT_INDEX = "carads1"
+DEFAULT_INDEX = "carads1_local"
 DEFAULT_POSTGRES_DATABASE_URL = "postgresql+psycopg://postgres:postgres@localhost:5432/car_intel"
 DEFAULT_BATCH_SIZE = 500
 DEFAULT_MIN_SCORE = 0.7
