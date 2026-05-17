@@ -14,6 +14,7 @@ from app.repositories.mongo_raw_archive import (
     RawArchiveDocument,
 )
 from app.services.archiving_service.core.config import ArchivingServiceSettings
+import app.services.archiving_service.main as archiving_main
 from app.services.archiving_service.main import ArchiveStateUowFactory, run_archive
 
 
@@ -30,7 +31,34 @@ def _build_settings() -> ArchivingServiceSettings:
         AWS_ACCESS_KEY_ID="access-key",
         AWS_SECRET_ACCESS_KEY="secret-key",
         AWS_REGION="ru-central1",
+        TELEGRAM_REPORTING_ENABLED=False,
     )
+
+
+class _Reporter:
+    instances: list["_Reporter"] = []
+
+    def __init__(self) -> None:
+        self.progress_messages: list[str] = []
+        self.critical_messages: list[str] = []
+        _Reporter.instances.append(self)
+
+    @classmethod
+    def from_settings(
+        cls,
+        *,
+        service_name: str,
+        settings: ArchivingServiceSettings,
+        logger: object,
+    ) -> "_Reporter":
+        _ = (service_name, settings, logger)
+        return cls()
+
+    async def send_progress(self, message: str) -> None:
+        self.progress_messages.append(message)
+
+    async def send_critical(self, message: str) -> None:
+        self.critical_messages.append(message)
 
 
 class _FakeArchiveBatches:
@@ -143,10 +171,13 @@ def test_archive_batch_succeeds_before_deleting_mongo_documents() -> None:
         events,
     )
     storage = _FakeArchiveStorage(events)
+    _Reporter.instances.clear()
 
     def _state_uow_factory() -> _FakeUow:
         return _FakeUow(archive_batches, events)
 
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(archiving_main, "TelegramReporter", _Reporter)
     asyncio.run(
         run_archive(
             app_settings=_build_settings(),
@@ -155,6 +186,7 @@ def test_archive_batch_succeeds_before_deleting_mongo_documents() -> None:
             state_uow_factory=cast(ArchiveStateUowFactory, _state_uow_factory),
         )
     )
+    monkeypatch.undo()
 
     assert raw_repo.deleted_ids == ["id-1", "id-2"]
     assert len(storage.uploaded_keys) == 1
@@ -165,6 +197,12 @@ def test_archive_batch_succeeds_before_deleting_mongo_documents() -> None:
     )
     assert any(event.startswith("in-progress:") for event in events)
     assert any(event.startswith("success:") for event in events)
+    assert len(_Reporter.instances) == 1
+    reporter = _Reporter.instances[0]
+    assert len(reporter.progress_messages) == 2
+    assert reporter.progress_messages[0] == "Archive started | retention_days=60"
+    assert reporter.progress_messages[1].startswith("Archive completed | docs=2 | batches=1 | cutoff=")
+    assert reporter.critical_messages == []
 
 
 def test_archive_batches_are_partitioned_by_month() -> None:
@@ -186,10 +224,13 @@ def test_archive_batches_are_partitioned_by_month() -> None:
         events,
     )
     storage = _FakeArchiveStorage(events)
+    _Reporter.instances.clear()
 
     def _state_uow_factory() -> _FakeUow:
         return _FakeUow(archive_batches, events)
 
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(archiving_main, "TelegramReporter", _Reporter)
     asyncio.run(
         run_archive(
             app_settings=_build_settings(),
@@ -198,11 +239,16 @@ def test_archive_batches_are_partitioned_by_month() -> None:
             state_uow_factory=cast(ArchiveStateUowFactory, _state_uow_factory),
         )
     )
+    monkeypatch.undo()
 
     assert len(storage.uploaded_keys) == 2
     assert storage.uploaded_keys[0].startswith("raw-archive/2026/04/part-")
     assert storage.uploaded_keys[1].startswith("raw-archive/2026/05/part-")
     assert raw_repo.deleted_ids == ["id-1", "id-2"]
+    assert len(_Reporter.instances) == 1
+    reporter = _Reporter.instances[0]
+    assert len(reporter.progress_messages) == 2
+    assert reporter.critical_messages == []
 
 
 def test_archive_failure_marks_metadata_failed_and_keeps_mongo_documents() -> None:
@@ -219,10 +265,13 @@ def test_archive_failure_marks_metadata_failed_and_keeps_mongo_documents() -> No
         events,
     )
     storage = _FakeArchiveStorage(events, should_fail=True)
+    _Reporter.instances.clear()
 
     def _state_uow_factory() -> _FakeUow:
         return _FakeUow(archive_batches, events)
 
+    monkeypatch = pytest.MonkeyPatch()
+    monkeypatch.setattr(archiving_main, "TelegramReporter", _Reporter)
     with pytest.raises(RuntimeError, match="upload verification failed"):
         asyncio.run(
             run_archive(
@@ -232,11 +281,18 @@ def test_archive_failure_marks_metadata_failed_and_keeps_mongo_documents() -> No
                 state_uow_factory=cast(ArchiveStateUowFactory, _state_uow_factory),
             )
         )
+    monkeypatch.undo()
 
     assert raw_repo.deleted_ids == []
     assert any(event.startswith("in-progress:") for event in events)
     assert any(event.startswith("failed:") for event in events)
     assert not any(event.startswith("delete:") for event in events)
+    assert len(_Reporter.instances) == 1
+    reporter = _Reporter.instances[0]
+    assert len(reporter.progress_messages) == 1
+    assert reporter.progress_messages[0] == "Archive started | retention_days=60"
+    assert len(reporter.critical_messages) == 1
+    assert reporter.critical_messages[0].startswith("Archive failed: upload verification failed")
 
 
 def test_archive_batch_size_is_clamped(monkeypatch: pytest.MonkeyPatch) -> None:

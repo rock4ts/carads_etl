@@ -44,6 +44,9 @@ class ArchivingServiceSettings(BaseSettings):
         default="replace-with-secret-key", alias="AWS_SECRET_ACCESS_KEY"
     )
     aws_region: str | None = Field(default=None, alias="AWS_REGION")
+    telegram_bot_token: str | None = Field(default=None, alias="TELEGRAM_BOT_TOKEN")
+    telegram_channel_id: str | None = Field(default=None, alias="TELEGRAM_CHANNEL_ID")
+    telegram_reporting_enabled: bool = Field(default=True, alias="TELEGRAM_REPORTING_ENABLED")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
     @field_validator(
@@ -57,6 +60,8 @@ class ArchivingServiceSettings(BaseSettings):
         "aws_access_key_id",
         "aws_secret_access_key",
         "aws_region",
+        "telegram_bot_token",
+        "telegram_channel_id",
         "log_level",
         mode="before",
     )

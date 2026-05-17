@@ -29,6 +29,7 @@ from app.services.archiving_service.core.config import (
     ArchivingServiceSettings,
     settings,
 )
+from app.services.telegram_notifier import TelegramReporter
 from app.uow.archive_state_uow import (
     ArchiveStateUnitOfWork,
     SqlAlchemyArchiveStateUnitOfWork,
@@ -283,6 +284,11 @@ async def run_archive(
     archive_storage: ArchiveStorage | None = None,
     state_uow_factory: ArchiveStateUowFactory | None = None,
 ) -> None:
+    reporter = TelegramReporter.from_settings(
+        service_name="archive_service",
+        settings=app_settings,
+        logger=logger,
+    )
     raw_archive_repo = raw_archive_repo or _build_raw_archive_repository(app_settings)
     archive_storage = archive_storage or _build_archive_storage(app_settings)
     state_uow_factory = state_uow_factory or _build_state_uow_factory(app_settings)
@@ -293,58 +299,74 @@ async def run_archive(
     deleted_total = 0
     batch_total = 0
 
-    with state_uow_factory() as lock_uow:
-        if not lock_uow.archive_batches.try_acquire_worker_lock():
-            logger.warning(
-                "Archive job skipped because another archive worker is running"
-            )
-            return
-        try:
-            last_archived_at = (
-                lock_uow.archive_batches.get_last_successful_to_ingested_at()
-            )
-            logger.info(
-                "Archive job started cutoff=%s last_successful_to_ingested_at=%s",
-                cutoff,
-                last_archived_at,
-            )
-            async for raw_batch in raw_archive_repo.iter_expired_batches(
-                cutoff=cutoff,
-                batch_size=app_settings.archive_batch_size,
-            ):
-                for monthly_batch in _split_by_archive_month(raw_batch):
-                    archive_batch = _prepare_archive_batch(
-                        documents=monthly_batch,
-                        s3_prefix=app_settings.normalized_s3_prefix,
-                    )
-                    result = await _archive_batch(
-                        batch=archive_batch,
-                        raw_archive_repo=raw_archive_repo,
-                        archive_storage=archive_storage,
-                        state_uow_factory=state_uow_factory,
-                    )
-                    processed_total += result.documents_count
-                    deleted_total += result.deleted_count
-                    batch_total += 1
-                    logger.info(
-                        "Archive batch succeeded batch_id=%s size=%s deleted=%s from=%s to=%s s3_path=%s",
-                        archive_batch.batch_id,
-                        result.documents_count,
-                        result.deleted_count,
-                        archive_batch.from_ingested_at,
-                        archive_batch.to_ingested_at,
-                        archive_batch.object_key,
-                    )
-            logger.info(
-                "Archive job finished batches=%s documents=%s deleted=%s cutoff=%s",
-                batch_total,
-                processed_total,
-                deleted_total,
-                cutoff,
-            )
-        finally:
-            lock_uow.archive_batches.release_worker_lock()
-            lock_uow.commit()
+    msg = f"Archive started | retention_days={app_settings.archive_retention_days}"
+    logger.info(msg)
+    await reporter.send_progress(msg)
+
+    try:
+        with state_uow_factory() as lock_uow:
+            if not lock_uow.archive_batches.try_acquire_worker_lock():
+                logger.warning(
+                    "Archive job skipped because another archive worker is running"
+                )
+                return
+            try:
+                last_archived_at = (
+                    lock_uow.archive_batches.get_last_successful_to_ingested_at()
+                )
+                logger.info(
+                    "Archive job started cutoff=%s last_successful_to_ingested_at=%s",
+                    cutoff,
+                    last_archived_at,
+                )
+                async for raw_batch in raw_archive_repo.iter_expired_batches(
+                    cutoff=cutoff,
+                    batch_size=app_settings.archive_batch_size,
+                ):
+                    for monthly_batch in _split_by_archive_month(raw_batch):
+                        archive_batch = _prepare_archive_batch(
+                            documents=monthly_batch,
+                            s3_prefix=app_settings.normalized_s3_prefix,
+                        )
+                        result = await _archive_batch(
+                            batch=archive_batch,
+                            raw_archive_repo=raw_archive_repo,
+                            archive_storage=archive_storage,
+                            state_uow_factory=state_uow_factory,
+                        )
+                        processed_total += result.documents_count
+                        deleted_total += result.deleted_count
+                        batch_total += 1
+                        logger.info(
+                            "Archive batch succeeded batch_id=%s size=%s deleted=%s from=%s to=%s s3_path=%s",
+                            archive_batch.batch_id,
+                            result.documents_count,
+                            result.deleted_count,
+                            archive_batch.from_ingested_at,
+                            archive_batch.to_ingested_at,
+                            archive_batch.object_key,
+                        )
+                logger.info(
+                    "Archive job finished batches=%s documents=%s deleted=%s cutoff=%s",
+                    batch_total,
+                    processed_total,
+                    deleted_total,
+                    cutoff,
+                )
+            finally:
+                lock_uow.archive_batches.release_worker_lock()
+                lock_uow.commit()
+        msg = (
+            "Archive completed | "
+            f"docs={processed_total} | batches={batch_total} | cutoff={cutoff.isoformat()}"
+        )
+        logger.info(msg)
+        await reporter.send_progress(msg)
+    except Exception as error:
+        msg = f"Archive failed: {error}"
+        logger.exception(msg)
+        await reporter.send_critical(msg)
+        raise
 
 
 async def main() -> None:
