@@ -70,6 +70,9 @@ class ElasticsearchHttpClient:
     async def put_mapping(self, *, index: str, body: dict[str, Any]) -> dict[str, Any]:
         return await self._request_json("PUT", f"/{index}/_mapping", payload=body)
 
+    async def refresh_index(self, *, index: str) -> dict[str, Any]:
+        return await self._request_json("POST", f"/{index}/_refresh")
+
     async def bulk(
         self,
         *,
