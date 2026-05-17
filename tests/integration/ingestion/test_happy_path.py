@@ -14,7 +14,6 @@ from tests.integration.ingestion.conftest import (
     LOAD_TILL,
     T0,
     T1,
-    TEST_INDEX,
     ParserStub,
     build_parser_ad,
     fetch_upload_timestamp,
@@ -52,12 +51,11 @@ async def test_happy_path_persists_all_storages_and_updates_checkpoint(
     assert raw_docs[0]["request_params"]["from_datetime"] == T0.strftime("%Y-%m-%d %H:%M:%S")
     assert raw_docs[0]["payload"]["unique_id"] == 1001
 
-    await es_client._request_json("POST", f"/{TEST_INDEX}/_refresh")
+    await es_client._request_json("POST", f"/{app_settings.processed_index}/_refresh")
     es_response = await es_client.search(
-        index=TEST_INDEX,
+        index=app_settings.processed_index,
         query={"match_all": {}},
         size=10,
-        sort=[{"_id": {"order": "asc"}}],
     )
     hits = es_response.get("hits", {}).get("hits", [])
     assert len(hits) == 1

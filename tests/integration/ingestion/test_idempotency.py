@@ -15,7 +15,6 @@ from tests.integration.ingestion.conftest import (
     T0,
     T1,
     T2,
-    TEST_INDEX,
     ParserStub,
     build_parser_ad,
     fetch_upload_timestamp,
@@ -68,12 +67,11 @@ async def test_repeat_ingestion_keeps_raw_history_and_single_es_logical_document
     assert raw_docs[0]["payload"]["price"] == 1_000_000
     assert raw_docs[1]["payload"]["price"] == 1_250_000
 
-    await es_client._request_json("POST", f"/{TEST_INDEX}/_refresh")
+    await es_client._request_json("POST", f"/{app_settings.processed_index}/_refresh")
     es_response = await es_client.search(
-        index=TEST_INDEX,
+        index=app_settings.processed_index,
         query={"match_all": {}},
         size=10,
-        sort=[{"_id": {"order": "asc"}}],
     )
     hits = es_response.get("hits", {}).get("hits", [])
     assert len(hits) == 1

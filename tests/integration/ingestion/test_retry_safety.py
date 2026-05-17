@@ -13,7 +13,6 @@ from tests.integration.ingestion.conftest import (
     LOAD_TILL,
     T0,
     T1,
-    TEST_INDEX,
     ParserStub,
     build_parser_ad,
     fetch_upload_timestamp,
@@ -78,12 +77,11 @@ async def test_retry_safety_keeps_checkpoint_until_es_write_succeeds(
     raw_count = await mongo_collection.count_documents({})
     assert raw_count == 2
 
-    await es_client._request_json("POST", f"/{TEST_INDEX}/_refresh")
+    await es_client._request_json("POST", f"/{app_settings.processed_index}/_refresh")
     es_response = await es_client.search(
-        index=TEST_INDEX,
+        index=app_settings.processed_index,
         query={"match_all": {}},
         size=10,
-        sort=[{"_id": {"order": "asc"}}],
     )
     hits = es_response.get("hits", {}).get("hits", [])
     assert len(hits) == 1

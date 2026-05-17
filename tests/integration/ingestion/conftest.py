@@ -85,6 +85,7 @@ def app_settings() -> IngestionServiceSettings:
     return IngestionServiceSettings(
         POSTGRES_DATABASE_URL=POSTGRES_DATABASE_URL,
         ELASTICSEARCH_URL=ELASTICSEARCH_URL,
+        PROCESSED_INDEX=TEST_INDEX,
         ELASTICSEARCH_API_KEY="",
         ELASTICSEARCH_USERNAME="",
         ELASTICSEARCH_PASSWORD="",
