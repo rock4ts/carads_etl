@@ -9,14 +9,15 @@ from datetime import datetime, timezone
 from app.clients import ElasticsearchHttpClient
 from app.services.archiving_service.main import run_archive
 from app.services.ingestion_service.main import run_ingestion
-from app.services.matching_service.core.config import settings as matching_settings
+from app.services.matching_service.core.config import settings
 from app.services.matching_service.main import run_matcher
+from app.services.telegram_notifier import TelegramReporter
 
 logger = logging.getLogger(__name__)
 
 
 def _configure_logging() -> None:
-    level = getattr(logging, matching_settings.log_level.strip().upper(), logging.INFO)
+    level = getattr(logging, settings.log_level.strip().upper(), logging.INFO)
     logging.basicConfig(
         level=level,
         format="%(asctime)s %(levelname)s %(name)s - %(message)s",
@@ -31,29 +32,40 @@ def _to_naive_utc(value: datetime) -> datetime:
 
 async def _refresh_processed_index() -> None:
     es_client = ElasticsearchHttpClient(
-        matching_settings.elasticsearch_url,
-        api_key=matching_settings.elasticsearch_api_key,
-        username=matching_settings.elasticsearch_username,
-        password=matching_settings.elasticsearch_password,
+        settings.elasticsearch_url,
+        api_key=settings.elasticsearch_api_key,
+        username=settings.elasticsearch_username,
+        password=settings.elasticsearch_password,
     )
-    await es_client.refresh_index(index=matching_settings.processed_index)
+    _ = await es_client.refresh_index(index=settings.processed_index)
 
 
 async def run_pipeline() -> None:
     started_at = datetime.now(timezone.utc)
     load_till = _to_naive_utc(started_at)
     status = "success"
-    logger.info("Pipeline started at %s", started_at.isoformat())
-    logger.info("Pipeline load_till fixed at %s", load_till.isoformat())
+    reporter = TelegramReporter.from_settings(
+        service_name="pipeline_runner",
+        settings=settings,
+        logger=logger,
+    )
+
+    msg = f"Pipeline started | load_till={load_till.isoformat()}"
+    logger.info(msg)
+    await reporter.send_progress(msg)
 
     try:
         try:
             await run_ingestion(load_till=load_till)
-        except Exception:
+        except Exception as error:
             status = "failed"
-            logger.exception("Pipeline stage failed: ingestion")
+            msg = f"Ingestion failed: {error}"
+            logger.exception(msg)
+            await reporter.send_critical(msg)
             return
-        logger.info("Ingestion completed")
+        msg = "Ingestion completed"
+        logger.info(msg)
+        await reporter.send_progress(msg)
 
         try:
             await _refresh_processed_index()
@@ -61,26 +73,42 @@ async def run_pipeline() -> None:
             status = "failed"
             logger.exception(
                 "Pipeline stage failed: refresh index=%s",
-                matching_settings.processed_index,
+                settings.processed_index,
             )
             return
-        logger.info("Elasticsearch refresh completed for index=%s", matching_settings.processed_index)
+        logger.info("Elasticsearch refreshed")
 
         try:
             await run_matcher()
-        except Exception:
+        except Exception as error:
             status = "failed"
-            logger.exception("Pipeline stage failed: matcher")
+            msg = f"Matcher failed: {error}"
+            logger.exception(msg)
+            await reporter.send_critical(msg)
             return
-        logger.info("Matcher completed")
+        msg = "Matcher completed"
+        logger.info(msg)
+        await reporter.send_progress(msg)
 
         try:
             await run_archive()
-        except Exception:
+        except Exception as error:
             status = "failed"
-            logger.exception("Pipeline stage failed: archive")
+            msg = f"Archive failed: {error}"
+            logger.exception(msg)
+            await reporter.send_critical(msg)
             return
-        logger.info("Archive completed")
+        msg = "Archive completed"
+        logger.info(msg)
+        await reporter.send_progress(msg)
+
+        duration_seconds = (datetime.now(timezone.utc) - started_at).total_seconds()
+        msg = (
+            "Pipeline finished successfully | "
+            f"duration={duration_seconds:.0f}s | load_till={load_till.isoformat()}"
+        )
+        logger.info(msg)
+        await reporter.send_progress(msg)
     finally:
         duration_seconds = (datetime.now(timezone.utc) - started_at).total_seconds()
         logger.info("Pipeline finished status=%s duration_seconds=%.3f", status, duration_seconds)
