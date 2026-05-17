@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from app.clients import ElasticsearchHttpClient
 from app.services.archiving_service.main import run_archive
 from app.services.ingestion_service.main import run_ingestion
-from app.services.matching_service.core.config import settings
+from app.services.pipeline_runner.core.config import settings
 from app.services.matching_service.main import run_matcher
 from app.services.telegram_notifier import TelegramReporter
 
