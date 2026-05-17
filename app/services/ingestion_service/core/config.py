@@ -24,6 +24,7 @@ class IngestionServiceSettings(BaseSettings):
     )
     parser_api_key: str = Field(default="replace-with-parser-api-key", alias="PARSER_API_KEY")
     elasticsearch_url: str = Field(default="http://localhost:9200", alias="ELASTICSEARCH_URL")
+    processed_index: str = Field(default="carads1_local", alias="PROCESSED_INDEX")
     elasticsearch_api_key: str | None = Field(default=None, alias="ELASTICSEARCH_API_KEY")
     elasticsearch_username: str | None = Field(default=None, alias="ELASTICSEARCH_USERNAME")
     elasticsearch_password: str | None = Field(default=None, alias="ELASTICSEARCH_PASSWORD")
@@ -41,6 +42,7 @@ class IngestionServiceSettings(BaseSettings):
         "parser_api_url",
         "parser_api_key",
         "elasticsearch_url",
+        "processed_index",
         "elasticsearch_api_key",
         "elasticsearch_username",
         "elasticsearch_password",

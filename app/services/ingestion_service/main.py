@@ -193,6 +193,7 @@ async def _persist_batch(
     await save_processed_docs(
         processed_docs,
         elasticsearch_url=app_settings.elasticsearch_url,
+        index_name=app_settings.processed_index,
         elasticsearch_api_key=app_settings.elasticsearch_api_key,
         elasticsearch_username=app_settings.elasticsearch_username,
         elasticsearch_password=app_settings.elasticsearch_password,
@@ -319,7 +320,7 @@ async def _process_site(
         )
 
 
-async def _run() -> None:
+async def run_ingestion(*, load_till: datetime | None = None) -> None:
     reporter = TelegramReporter.from_settings(service_name="ingestion", settings=settings, logger=logger)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
 
@@ -332,13 +333,17 @@ async def _run() -> None:
         logger.info("No sites available for ingestion")
         return
 
-    load_till = _to_naive_utc(datetime.now(timezone.utc))
+    effective_load_till = load_till
+    if effective_load_till is None:
+        effective_load_till = _to_naive_utc(datetime.now(timezone.utc))
+    else:
+        effective_load_till = _to_naive_utc(effective_load_till)
     for site_name in sites:
         try:
             await _process_site(
                 site_name=site_name,
                 state_uow_factory=_state_uow_factory,
-                load_till=load_till,
+                load_till=effective_load_till,
                 app_settings=settings,
                 reporter=reporter,
                 progress_report_interval_minutes=settings.telegram_progress_interval_minutes,
@@ -350,7 +355,7 @@ async def _run() -> None:
 
 def main() -> None:
     _configure_logging()
-    asyncio.run(_run())
+    asyncio.run(run_ingestion())
 
 
 if __name__ == "__main__":

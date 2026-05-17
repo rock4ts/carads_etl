@@ -153,3 +153,40 @@ def test_failure_during_mapping_does_not_update_checkpoint(
     assert len(mongo.saved_raw_ads) == 1
     assert state_repo.upserts == []
     assert state_uow_factory.commit_log == []
+
+
+def test_persist_batch_uses_processed_index_from_settings(
+    monkeypatch: pytest.MonkeyPatch,
+    app_settings: IngestionServiceSettings,
+    timestamps: dict[str, datetime],
+) -> None:
+    captured_index_name: str | None = None
+
+    async def _noop_save_raw_ads(*args: object, **kwargs: object) -> None:
+        return
+
+    def _fake_map_raw_to_processed(raw: object) -> object:
+        return {"doc": "value"}
+
+    async def _capture_save_processed_docs(*args: object, **kwargs: object) -> None:
+        nonlocal captured_index_name
+        index_name = kwargs.get("index_name")
+        assert isinstance(index_name, str)
+        captured_index_name = index_name
+
+    custom_settings = app_settings.model_copy(update={"processed_index": "custom_index"})
+
+    monkeypatch.setattr(ingestion_main, "save_raw_ads", _noop_save_raw_ads)
+    monkeypatch.setattr(ingestion_main, "map_raw_to_processed", _fake_map_raw_to_processed)
+    monkeypatch.setattr(ingestion_main, "save_processed_docs", _capture_save_processed_docs)
+
+    asyncio.run(
+        ingestion_main._persist_batch(
+            site_name="avito",
+            request_params={"site": "avito", "from_datetime": "2026-01-01 00:00:00"},
+            ads_batch=[build_ad(checked=timestamps["T1"], unique_id=7777)],
+            app_settings=custom_settings,
+        )
+    )
+
+    assert captured_index_name == "custom_index"

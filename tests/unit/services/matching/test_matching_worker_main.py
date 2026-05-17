@@ -138,7 +138,7 @@ def test_run_reports_critical_when_site_processing_fails(monkeypatch: pytest.Mon
     monkeypatch.setattr(matching_main, "_process_site", _raise_process_site)
 
     with pytest.raises(RuntimeError, match="simulated site failure"):
-        asyncio.run(matching_main._run())
+        asyncio.run(matching_main.run_matcher())
 
     assert len(critical_messages) == 1
     assert "site=avito status=failed" in critical_messages[0]

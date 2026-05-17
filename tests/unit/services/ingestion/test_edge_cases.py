@@ -207,7 +207,7 @@ def test_run_uses_single_fixed_load_till_for_all_sites(
     monkeypatch.setattr(ingestion_main, "SqlAlchemyIngestionStateUnitOfWork", _FakeSqlAlchemyIngestionStateUnitOfWork)
     monkeypatch.setattr(ingestion_main, "_process_site", _capture_process_site)
 
-    asyncio.run(ingestion_main._run())
+    asyncio.run(ingestion_main.run_ingestion())
 
     assert frozen_now_calls == [frozen_now], (
         "load_till must be computed once at run start via datetime.now(timezone.utc); "
@@ -302,7 +302,7 @@ def test_run_reports_critical_message_when_site_fails(
     monkeypatch.setattr(ingestion_main, "TelegramReporter", _Reporter)
     monkeypatch.setattr(ingestion_main, "_process_site", _raise_process_site)
 
-    asyncio.run(ingestion_main._run())
+    asyncio.run(ingestion_main.run_ingestion())
 
     assert len(critical_messages) == 1
     assert "status=failed" in critical_messages[0]

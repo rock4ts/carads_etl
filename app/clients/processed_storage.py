@@ -16,6 +16,7 @@ async def save_processed_docs(
     docs: Sequence[CaradDocData],
     *,
     elasticsearch_url: str | None,
+    index_name: str = PROCESSED_INDEX_NAME,
     elasticsearch_api_key: str | None = None,
     elasticsearch_username: str | None = None,
     elasticsearch_password: str | None = None,
@@ -34,11 +35,11 @@ async def save_processed_docs(
     )
     repository = ElasticsearchProcessingDocsRepository(
         client=elasticsearch_client,
-        index_name=PROCESSED_INDEX_NAME,
+        index_name=index_name,
     )
     failed_items = await repository.bulk_index_processed_docs(docs)
     if not failed_items:
-        logger.info("Indexed %s processed docs into %s", len(docs), PROCESSED_INDEX_NAME)
+        logger.info("Indexed %s processed docs into %s", len(docs), index_name)
         return
 
     logger.error("Bulk indexing completed with %s failed items", len(failed_items))
