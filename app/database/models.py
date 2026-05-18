@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import StrEnum
 
-from sqlalchemy import DateTime, Enum, Integer, String
+from sqlalchemy import Boolean, DateTime, Enum, Integer, String
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -50,3 +50,12 @@ class ArchiveBatch(EtlStateBase):
         ),
         nullable=False,
     )
+
+
+class BackfillMatcherState(EtlStateBase):
+    __tablename__ = "backfill_matcher_states"
+
+    site: Mapped[str] = mapped_column(String(64), primary_key=True)
+    next_from: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
+    reset_completed: Mapped[bool] = mapped_column(Boolean(), nullable=False, default=False)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(), nullable=False)
