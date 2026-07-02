@@ -12,7 +12,7 @@ from urllib import error, parse, request
 from app.clients.processed_storage import save_processed_docs
 from app.clients.raw_storage import save_raw_ads
 from app.core.http_backoff import BackoffNotifier, with_http_backoff
-from app.database.session import build_postgres_session_factory
+from app.database.session import build_postgres_session_factory, ensure_etl_state_tables
 from app.schemas.raw import RawAd
 from app.services.ingestion_service.core.config import IngestionServiceSettings, settings
 from app.services.processing_service.mapper import map_raw_to_processed
@@ -322,6 +322,7 @@ async def _process_site(
 
 async def run_ingestion(*, load_till: datetime | None = None) -> None:
     reporter = TelegramReporter.from_settings(service_name="ingestion", settings=settings, logger=logger)
+    ensure_etl_state_tables(settings.postgres_database_url)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
 
     def _state_uow_factory() -> SqlAlchemyIngestionStateUnitOfWork:

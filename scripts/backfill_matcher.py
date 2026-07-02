@@ -14,7 +14,7 @@ from pydantic import ValidationError
 
 from app.clients import ElasticsearchHttpClient
 from app.database.models import BackfillMatcherState
-from app.database.session import build_postgres_session_factory
+from app.database.session import build_postgres_session_factory, ensure_etl_state_tables
 from app.repositories.elasticsearch_processed_ads import ElasticsearchProcessedAdsRepository
 from app.schemas.processed import CaradDocData
 from app.services.matching_service.core.config import settings
@@ -679,6 +679,7 @@ async def run_backfill() -> None:
     reporter = TelegramReporter.from_settings(
         service_name="backfill_matcher", settings=settings, logger=logger
     )
+    ensure_etl_state_tables(settings.postgres_database_url)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
     state_store = BackfillStateStore(session_factory=session_factory)
 

@@ -203,6 +203,7 @@ def test_run_uses_single_fixed_load_till_for_all_sites(
 
     monkeypatch.setattr(ingestion_main, "settings", app_settings)
     monkeypatch.setattr(ingestion_main, "datetime", _FrozenDatetime)
+    monkeypatch.setattr(ingestion_main, "ensure_etl_state_tables", lambda _: None)
     monkeypatch.setattr(ingestion_main, "build_postgres_session_factory", lambda _: object())
     monkeypatch.setattr(ingestion_main, "SqlAlchemyIngestionStateUnitOfWork", _FakeSqlAlchemyIngestionStateUnitOfWork)
     monkeypatch.setattr(ingestion_main, "_process_site", _capture_process_site)
@@ -297,6 +298,7 @@ def test_run_reports_critical_message_when_site_fails(
         raise RuntimeError("site processing exploded")
 
     monkeypatch.setattr(ingestion_main, "settings", app_settings)
+    monkeypatch.setattr(ingestion_main, "ensure_etl_state_tables", lambda _: None)
     monkeypatch.setattr(ingestion_main, "build_postgres_session_factory", lambda _: object())
     monkeypatch.setattr(ingestion_main, "SqlAlchemyIngestionStateUnitOfWork", _FakeSqlAlchemyIngestionStateUnitOfWork)
     monkeypatch.setattr(ingestion_main, "TelegramReporter", _Reporter)

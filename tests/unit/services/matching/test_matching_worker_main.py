@@ -129,6 +129,7 @@ def test_run_reports_critical_when_site_processing_fails(monkeypatch: pytest.Mon
     async def _raise_process_site(**kwargs: object) -> None:
         raise RuntimeError("simulated site failure")
 
+    monkeypatch.setattr(matching_main, "ensure_etl_state_tables", lambda _: None)
     monkeypatch.setattr(matching_main, "build_postgres_session_factory", lambda _: object())
     monkeypatch.setattr(matching_main, "SqlAlchemyMatchingStateUnitOfWork", _FakeSqlAlchemyMatchingStateUnitOfWork)
     monkeypatch.setattr(matching_main, "ElasticsearchHttpClient", _FakeEsClient)

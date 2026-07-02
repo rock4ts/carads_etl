@@ -272,6 +272,7 @@ def test_run_backfill_reports_after_month_checkpoint(monkeypatch: pytest.MonkeyP
 
     monkeypatch.setattr(backfill_matcher, "datetime", _FrozenDatetime)
     monkeypatch.setattr(backfill_matcher, "TelegramReporter", _FakeReporter)
+    monkeypatch.setattr(backfill_matcher, "ensure_etl_state_tables", lambda _: None)
     monkeypatch.setattr(backfill_matcher, "build_postgres_session_factory", lambda _: object())
     monkeypatch.setattr(backfill_matcher, "BackfillStateStore", _FakeStateStore)
     monkeypatch.setattr(backfill_matcher, "ElasticsearchHttpClient", _FakeClient)

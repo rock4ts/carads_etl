@@ -20,7 +20,7 @@ from app.clients.archive_storage import (
     YandexObjectStorageArchiveStorage,
 )
 from app.clients.mongo_client import MongoClient
-from app.database.session import build_postgres_session_factory
+from app.database.session import build_postgres_session_factory, ensure_etl_state_tables
 from app.repositories.mongo_raw_archive import (
     MongoRawArchiveRepository,
     RawArchiveDocument,
@@ -289,6 +289,7 @@ async def run_archive(
         settings=app_settings,
         logger=logger,
     )
+    ensure_etl_state_tables(app_settings.postgres_database_url)
     raw_archive_repo = raw_archive_repo or _build_raw_archive_repository(app_settings)
     archive_storage = archive_storage or _build_archive_storage(app_settings)
     state_uow_factory = state_uow_factory or _build_state_uow_factory(app_settings)

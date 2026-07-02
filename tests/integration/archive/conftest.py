@@ -17,7 +17,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.clients.archive_storage import YandexObjectStorageArchiveStorage
 from app.database.models import ArchiveBatch
-from app.database.session import build_postgres_session_factory
+from app.database.session import build_postgres_session_factory, ensure_etl_state_tables
 from app.repositories.mongo_raw_archive import MongoRawArchiveRepository
 from app.services.archiving_service import main as archiving_main
 from app.services.archiving_service.core.config import ArchivingServiceSettings
@@ -62,6 +62,11 @@ def archive_settings() -> ArchivingServiceSettings:
 @pytest.fixture
 def frozen_now() -> datetime:
     return FROZEN_NOW
+
+
+@pytest.fixture(scope="session", autouse=True)
+def ensure_etl_state_tables_fixture() -> None:
+    ensure_etl_state_tables(POSTGRES_DATABASE_URL)
 
 
 @pytest.fixture

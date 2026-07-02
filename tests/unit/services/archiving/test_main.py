@@ -178,6 +178,7 @@ def test_archive_batch_succeeds_before_deleting_mongo_documents() -> None:
 
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(archiving_main, "TelegramReporter", _Reporter)
+    monkeypatch.setattr(archiving_main, "ensure_etl_state_tables", lambda _: None)
     asyncio.run(
         run_archive(
             app_settings=_build_settings(),
@@ -231,6 +232,7 @@ def test_archive_batches_are_partitioned_by_month() -> None:
 
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(archiving_main, "TelegramReporter", _Reporter)
+    monkeypatch.setattr(archiving_main, "ensure_etl_state_tables", lambda _: None)
     asyncio.run(
         run_archive(
             app_settings=_build_settings(),
@@ -272,6 +274,7 @@ def test_archive_failure_marks_metadata_failed_and_keeps_mongo_documents() -> No
 
     monkeypatch = pytest.MonkeyPatch()
     monkeypatch.setattr(archiving_main, "TelegramReporter", _Reporter)
+    monkeypatch.setattr(archiving_main, "ensure_etl_state_tables", lambda _: None)
     with pytest.raises(RuntimeError, match="upload verification failed"):
         asyncio.run(
             run_archive(

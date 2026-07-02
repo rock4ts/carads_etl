@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 from app.clients import ElasticsearchHttpClient
 from app.core.http_backoff import BackoffNotifier
-from app.database.session import build_postgres_session_factory
+from app.database.session import build_postgres_session_factory, ensure_etl_state_tables
 from app.repositories.elasticsearch_processed_ads import ElasticsearchProcessedAdsRepository
 from app.schemas.processed import CaradDocData
 from app.services.matching_service.core.config import settings
@@ -360,6 +360,7 @@ def _build_backoff_notifier(reporter: TelegramReporter) -> BackoffNotifier:
 
 async def run_matcher() -> None:
     reporter = TelegramReporter.from_settings(service_name="matching", settings=settings, logger=logger)
+    ensure_etl_state_tables(settings.postgres_database_url)
     session_factory = build_postgres_session_factory(settings.postgres_database_url)
     backoff_notifier = _build_backoff_notifier(reporter)
 
